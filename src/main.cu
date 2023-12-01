@@ -1,4 +1,4 @@
-#include "utils.cuh"
+// #include "utils.cuh"
 
 int main() {
     // Your main CUDA code here
