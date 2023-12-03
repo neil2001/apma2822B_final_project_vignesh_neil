@@ -1,5 +1,7 @@
 #include <iostream>
 #include <time.h>
+#include <vector>
+
 #include "vec3.h"
 #include "ray.h"
 #include "camera.h"
@@ -39,8 +41,8 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int nx = 1200;
-    int ny = 600;
+    int nx = 600;
+    int ny = 1200;
 
     int tx = 8;
     int ty = 8;
@@ -58,10 +60,10 @@ int main() {
     dim3 nblocks(nx/tx + 1, ny/ty + 1);
 
     Camera camera(
-        vec3(0.0, 0.0, 0.0), 
-        vec3(-2.0, -1.0, -1.0), 
-        vec3(4.0, 0.0, 0.0), 
-        vec3(0.0, 2.0, 0.0));
+        vec3(0.0, -64.0, 32.0), 
+        vec3(-16.0, 0.0, -16.0), 
+        vec3(48.0, 0.0, 0.0), 
+        vec3(0.0, 0.0, 96.0));
 
     // Camera *camera_d;
     // cudaMalloc ( (void**) &camera_d, sizeof(Camera));
@@ -80,9 +82,16 @@ int main() {
     
     // StlObject tetraObj(tetra_d, 4);
 
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    size_t triangle_count = triangles.size();
+    Triangle *pikachu_h = triangles.data();
+    Triangle *pikachu_d;
     
+    cudaMalloc ( (void**) &pikachu_d, sizeof(Triangle)*triangle_count);
+    cudaMemcpy (pikachu_d, pikachu_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
+    StlObject pikachu(pikachu_d, triangle_count);
 
-    render<<<nblocks, nthreads>>>(frame, nx, ny, camera, tetraObj);
+    render<<<nblocks, nthreads>>>(frame, nx, ny, camera, pikachu);
     cudaDeviceSynchronize();
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";

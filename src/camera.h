@@ -15,7 +15,7 @@ public:
     }
     
     __device__ inline ray make_ray(float u, float v) { 
-        return ray(position, lowerLeft + u*horizontal + v*vertical); 
+        return ray(position, (lowerLeft + u*horizontal + v*vertical) - position); 
     }
     
     vec3 lowerLeft;

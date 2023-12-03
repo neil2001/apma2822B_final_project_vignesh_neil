@@ -17,8 +17,9 @@ public:
         v[0] = v1;
         v[1] = v2;
         v[2] = v3;
-        n = cross(v[1]-v[0], v[2]-v[0]); //normal; 
-        n.make_unit_vector();
+        n = normal;
+        // n = cross(v[1]-v[0], v[2]-v[0]); //normal; 
+        // n.make_unit_vector();
     }
 
     __device__ inline bool hit(const ray& r, float t_max, ray_hit& hitRec) {
@@ -59,5 +60,10 @@ public:
     vec3 n;
     vec3 v[3];
 }; 
+
+inline std::ostream& operator<<(std::ostream &os, const Triangle &t) {
+    os << t.v[0] << ", " << t.v[1] << ", " << t.v[2];
+    return os;
+}
 
 #endif
