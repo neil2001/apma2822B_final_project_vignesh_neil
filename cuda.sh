@@ -21,6 +21,6 @@ nvidia-smi
 
 # Compile CUDA program and run
 #nvcc -arch sm_20 vecadd.cu -o vecadd
-nvcc -O2 main.cu
+nvcc -O2 src/main.cu
 ./a.out > out.ppm
 python3 ./ppmtojpg.py
