@@ -9,16 +9,48 @@
 #include "stlobject.h"
 #include "stlparser.h"
 
+#define NUM_REFLECTIONS 10
+
+/**
+ * TODO:
+ * - maybe do triangles as hostmalloc
+ * - use streams and 1024 threads per block (switch to row-wise)
+*/
+
 __device__ vec3 color(const ray& r, StlObject obj) {
+
+    // NORMAL SHADING 
+    /* 
     ray_hit rec;
 
     if (obj.hit(r, rec)) {
         return 0.5f*vec3(rec.normal.x()+1.0f, rec.normal.y()+1.0f, rec.normal.z()+1.0f);
     }
-
     vec3 normalized = unit_vector(r.direction());
     float t = 0.5f*(normalized.y() + 1.0f);
-    return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+    return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
+    */
+
+    // REFLECTIONS
+    ray curr = r;
+    float f_att = 1.0f;
+
+    vec3 rayDir;
+    for (int i=0; i<NUM_REFLECTIONS; i++) {
+        ray_hit rec;
+        if (obj.hit(curr, rec)) {
+            f_att *= 0.5f;
+            rayDir = curr.direction() - 2 * rec.normal * dot(curr.direction(), rec.normal);
+            curr = ray(rec.p, rayDir);
+        } else {
+            vec3 normalized = unit_vector(curr.direction());
+            float t = 0.5f*(normalized.y() + 1.0f);
+            vec3 c = (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
+            return f_att * c;
+        }
+    }
+
+    return vec3(0,0,0);
 }
 
 __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObject obj) {
@@ -89,6 +121,7 @@ int main() {
     
     cudaMalloc ( (void**) &pikachu_d, sizeof(Triangle)*triangle_count);
     cudaMemcpy (pikachu_d, pikachu_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
+
     StlObject pikachu(pikachu_d, triangle_count);
 
     render<<<nblocks, nthreads>>>(frame, nx, ny, camera, pikachu);

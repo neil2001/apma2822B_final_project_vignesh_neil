@@ -48,8 +48,8 @@ public:
         }
 
         if (t < t_max) {
-            hitRec.t = t;
-            hitRec.p = r.point_at_parameter(t);
+            hitRec.t = t - 0.01;
+            hitRec.p = r.point_at_parameter(hitRec.t);
             hitRec.normal = n;
             return true;
         }
