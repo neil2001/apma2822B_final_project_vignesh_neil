@@ -31,10 +31,13 @@ public:
 
         return hasHit;
     }
+    __device__ bool hitTree(const ray& r, ray_hit& finalHitRec) {
+        return root.traverse(r, finalHitRec);
+    }
     
     Triangle *triangles;
     int count;
-
+    TreeNode *root;
 };
 
 #endif
