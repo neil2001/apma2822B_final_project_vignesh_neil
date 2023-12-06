@@ -1,8 +1,30 @@
 #include "kdtree.h"
 
-float computeSAH(std::vector<boxPrim> *prims, Axis axis, bbox *innerBox) {
-    
+#define LEAF_SIZE 10
+
+TreeNode* KdTree::init(StlObject obj){
+    // median of first dimension, entire list
+    // two leaves, 
+    std::vector<Triangle> ts()
+    return initHelper()
+
 }
+
+TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
+    if (ts.size() < LEAF_SIZE) {
+        TreeNode leaf = new TreeNode(l, a, INFINITY, true, ts, NULL, NULL);
+    }
+    float s;
+    s = quickSelectHelper(ts, a);
+    // split on dim
+    // create subvectors
+    // store and pass in subvectrs to function, call on children
+    // create treenode 
+    // return treenode
+
+}
+
+
 
 float KdTree::bound(Triangle *t) {
     float min_x = INFINITY;
