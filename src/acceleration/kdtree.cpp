@@ -2,21 +2,22 @@
 #include <deque>
 #include <math.h>
 
-#include "kdtree.h"
+#include "acceleration/kdtree.h"
 
-#define LEAF_SIZE 10
+#define LEAF_SIZE 1
 
-__host__ TreeNode* KdTree::init(StlObject obj){
+__host__ void KdTree::init(Triangles *triangles, int n){
     // median of first dimension, entire list
     // two leaves, 
 
-    std::vector<Triangle> ts(obj.Triangles, obj.count*sizeof(Triangle));
-    return initHelper(ts, 0, 0);
+    std::vector<Triangle> ts(triangles, n);
+    this.root = initHelper(ts, 0, 0);
+    return;
 }
 
 __host__ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
     bbox newBbox = boundFromList(ts);
-    if (ts.size() < LEAF_SIZE) {
+    if (ts.size() <= LEAF_SIZE) {
         TreeNode leaf = new TreeNode(l, a, INFINITY, true, ts, NULL, 
                                     NULL, newBbox);
         return &leaf;
@@ -27,6 +28,7 @@ __host__ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
     std::vector<Triangle> rightVector;
     for (Triangle t : ts){
 
+        // TODO: use the center of the triangle instead
         bool inLeft = false;
         bool inRight = false;
 
@@ -69,7 +71,7 @@ __host__ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
     return &node;
 }
 
-__device__ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
+__host__ __device__ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
     // check if ray hits bounding box of curNode
     // check if ray hits bounding box of left or right child
     // traverse again with either the left or right child
@@ -108,7 +110,7 @@ __device__ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
     return has_hit
 }
 
-__host__ bbox KdTree::boundFromList(std::vector<Triangle> *items) {
+__host__ __device__ bbox KdTree::boundFromList(std::vector<Triangle> *items) {
     float min_x = INFINITY;
     float min_y = INFINITY;
     float min_z = INFINITY;

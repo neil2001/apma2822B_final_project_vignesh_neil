@@ -7,6 +7,7 @@
 #include "vec3.h"
 #include "ray.h"
 #include "triangle.h"
+#include "../acceleration/kdtree.h"
 
 class StlObject {
 
@@ -15,9 +16,12 @@ public:
     __host__ __device__ StlObject(Triangle *ts, int n) {
         triangles = ts;
         count = n;
+
+        tree = new KdTree();
+        tree->init(triangles, count);
     }
 
-    __device__ bool hit(const ray& r, ray_hit& finalHitRec) {
+    __host__ __device__ bool hit(const ray& r, ray_hit& finalHitRec) {
         ray_hit rec;
         bool hasHit = false;
         float t_max = INFINITY;
@@ -31,13 +35,14 @@ public:
 
         return hasHit;
     }
-    __device__ bool hitTree(const ray& r, ray_hit& finalHitRec) {
-        return root.traverse(r, finalHitRec);
+
+    __host__ __device__ bool hitTree(const ray& r, ray_hit& finalHitRec) {
+        return tree->hit(r, finalHitRec);
     }
     
     Triangle *triangles;
     int count;
-    TreeNode *root;
+    KdTree *tree;
 };
 
 #endif

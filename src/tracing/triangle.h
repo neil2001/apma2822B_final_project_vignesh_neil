@@ -23,7 +23,7 @@ public:
         n.make_unit_vector();
     }
 
-    __device__ inline bool hit(const ray& r, float t_max, ray_hit& hitRec) {
+    __host__ __device__ inline bool hit(const ray& r, float t_max, ray_hit& hitRec) {
         // return true;
         float nDotDir = dot(r.direction(), n);
         if (fabs(nDotDir) < EPSILON) {

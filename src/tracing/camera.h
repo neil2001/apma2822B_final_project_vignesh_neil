@@ -14,7 +14,7 @@ public:
         vertical = v;
     }
     
-    __device__ inline ray make_ray(float u, float v) { 
+    __host__ __device__ inline ray make_ray(float u, float v) { 
         return ray(position, (lowerLeft + u*horizontal + v*vertical) - position); 
     }
     
