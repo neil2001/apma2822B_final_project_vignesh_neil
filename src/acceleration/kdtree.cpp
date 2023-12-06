@@ -1,18 +1,21 @@
+#include <vector>
+#include <deque>
+#include <math.h>
+
 #include "kdtree.h"
 
 #define LEAF_SIZE 10
 
-TreeNode* KdTree::init(StlObject obj){
+__host__ TreeNode* KdTree::init(StlObject obj){
     // median of first dimension, entire list
     // two leaves, 
 
     std::vector<Triangle> ts(obj.Triangles, obj.count*sizeof(Triangle));
     return initHelper(ts, 0, 0);
-
 }
 
-TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
-    bbox* newBbox = boundFromList(ts);
+__host__ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
+    bbox newBbox = boundFromList(ts);
     if (ts.size() < LEAF_SIZE) {
         TreeNode leaf = new TreeNode(l, a, INFINITY, true, ts, NULL, 
                                     NULL, newBbox);
@@ -23,9 +26,32 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
     std::vector<Triangle> leftVector;
     std::vector<Triangle> rightVector;
     for (Triangle t : ts){
-        if (t.v[a] <= s) {
-            leftVector.push_back(t);
+
+        bool inLeft = false;
+        bool inRight = false;
+
+        if (t.v[0][a] <= s) {
+            inLeft = true;
         } else {
+            inRight = true;
+        }
+
+        if (t.v[1][a] <= s) {
+            inLeft = true;
+        } else {
+            inRight = true;
+        }
+
+        if (t.v[2][a] <= s) {
+            inLeft = true;
+        } else {
+            inRight = true;
+        }
+
+        if (inLeft) {
+            leftVector.push_back(t);
+        }
+        if (inRight) {
             rightVector.push_back(t);
         }
     }
@@ -43,17 +69,46 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
     return &node;
 }
 
-TreeNode* KdTree::traverse(ray r, TreeNode *curNode, ray_hit rec) {
+__device__ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
     // check if ray hits bounding box of curNode
     // check if ray hits bounding box of left or right child
     // traverse again with either the left or right child
 
-    if (curNode.isLeaf) {
+    std::deque<TreeNode*> toVisit = {this.root};
 
+    bool has_hit = false;
+    float t_max = INFINITY;
+
+    ray_hit rec;
+
+    while (!myDeque.empty()) {
+        TreeNode *curr = toVisit.pop_front();
+        if (curr->isLeaf) {
+            // LEAF NODE
+            for (const Triangle& t : curr->triangles) {
+                if (t->hit(r, t_max, rec)) {
+                    has_hit = true;
+                    t_max = rec.t;
+                    finalHitRec = rec;
+                }
+            }
+
+            continue;
+        }
+
+        if (curr->left->hit(r)) {
+            toVisit.push_back(curr->left);
+        }
+
+        if (curr->right->hit(r)) {
+            toVisit.push_back(curr->right);
+        }
     }
+
+    return has_hit
 }
 
-bbox* KdTree::boundFromList(std::vector<Triangle> *items) {
+__host__ bbox KdTree::boundFromList(std::vector<Triangle> *items) {
     float min_x = INFINITY;
     float min_y = INFINITY;
     float min_z = INFINITY;
@@ -104,5 +159,5 @@ bbox* KdTree::boundFromList(std::vector<Triangle> *items) {
     float surfaceArea = 2*xLen*yLen + 2*xLen*zLen + 2*yLen*zLen;
     vec3 dims(xLen, yLen, zLen);
     
-    return &bbox{maxVec, minVec, surfaceArea, dims};
+    return bbox{maxVec, minVec, surfaceArea, dims};
 }

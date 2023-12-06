@@ -37,7 +37,7 @@ public:
     __host__ __device__ TreeNode() {}
     __host__ TreeNode(int l, Axis a, float s, bool leaf, 
                std::vector<Triangle> ts, kdtree *ltree, 
-               kdtree *rtree, bbox *bbox) {
+               kdtree *rtree, bbox bbox) {
         level = l;
         axis = a;
         split = s;
@@ -48,7 +48,9 @@ public:
         bbox = bbox;
     }
 
-    __device__ hit(const ray& r, ray_hit& hitRec);
+    __device__ bool hit(const ray& r);
+    __device__ bool hit_bbox(const ray& r);
+    __device__ float ray_inter_plane(const ray& r, float a, float b, float c, float d);
 
     bool isLeaf;
     float split;
@@ -59,7 +61,7 @@ public:
 
     TreeNode *left;
     TreeNode *right;
-    bbox *box;
+    bbox box;
 }
 
 class KdTree {
@@ -67,8 +69,7 @@ class KdTree {
 public: 
     __host__ KdTree() {}
     __host__ TreeNode* init(StlObject obj);
-    __host__ TreeNode* initHelper(std::vector<Triangle> ts, Axis a);
-    __device__ hit(const ray& r, ray_hit& hitRec);
+    __device__ bool hit(const ray& r, ray_hit& hitRec);
 
     TreeNode *root;
 
@@ -76,6 +77,8 @@ private:
     const int MAXDEPTH = 10;
     const int MINOBJS = 2;
 
+    __host__ TreeNode* initHelper(std::vector<Triangle> ts, Axis a);
+    
     __host__ bbox bound(Triangle *t);
     __host__ bbox boundFromList(std::vector<Triangle> *items);
 }
