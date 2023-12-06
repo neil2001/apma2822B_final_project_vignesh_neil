@@ -1,15 +1,18 @@
 #include <iostream>
 #include <time.h>
 #include <vector>
+#include <sys/time.h>
 
-#include "vec3.h"
-#include "ray.h"
-#include "camera.h"
-#include "triangle.h"
-#include "stlobject.h"
-#include "stlparser.h"
+#include "tracing/vec3.h"
+#include "tracing/ray.h"
+#include "tracing/camera.h"
+#include "tracing/triangle.h"
+#include "tracing/stlobject.h"
+#include "tracing/stlparser.h"
 
 #define NUM_REFLECTIONS 10
+#define WARP_SIZE 32
+#define N_THREAD 32
 
 /**
  * TODO:
@@ -31,7 +34,20 @@ __device__ vec3 color(const ray& r, StlObject obj) {
     return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
     */
 
+    // LAMBERTIAN
+    vec3 kd(1.0, 1.0, 0.1);
+    ray_hit rec;
+    if (obj.hit(r, rec)) {
+        vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
+        return kd * dot(rec.normal, rayDir);
+    }
+
+    vec3 normalized = unit_vector(r.direction());
+    float t = 0.5f*(normalized.x() + 1.0f);
+    return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
+
     // REFLECTIONS
+    /*
     ray curr = r;
     float f_att = 1.0f;
 
@@ -51,6 +67,7 @@ __device__ vec3 color(const ray& r, StlObject obj) {
     }
 
     return vec3(0,0,0);
+    */
 }
 
 __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObject obj) {
@@ -73,8 +90,8 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int nx = 600;
-    int ny = 1200;
+    int nx = 1200;
+    int ny = 2400;
 
     int tx = 8;
     int ty = 8;
@@ -91,11 +108,19 @@ int main() {
     dim3 nthreads(tx, ty);
     dim3 nblocks(nx/tx + 1, ny/ty + 1);
 
+    // Pikachu
     Camera camera(
         vec3(0.0, -64.0, 32.0), 
         vec3(-16.0, 0.0, -16.0), 
         vec3(48.0, 0.0, 0.0), 
         vec3(0.0, 0.0, 96.0));
+
+    // Mandalorian
+    // Camera camera(
+    //     vec3(0.0, -16.0, 16.0), 
+    //     vec3(-16.0, 0.0, -16.0), 
+    //     vec3(24.0, 0.0, 0.0), 
+    //     vec3(0.0, 0.0, 48.0));
 
     // Camera *camera_d;
     // cudaMalloc ( (void**) &camera_d, sizeof(Camera));
@@ -114,18 +139,36 @@ int main() {
     
     // StlObject tetraObj(tetra_d, 4);
 
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    struct timeval startTime;
+    struct timeval endTime;
+
+    gettimeofday(&startTime, nullptr);
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/mando_mixed.stl");
+    gettimeofday(&endTime, nullptr);
+
+    int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
+
+    std::cerr << "Parsing time: " << millis << "ms" << std::endl;
+
     size_t triangle_count = triangles.size();
-    Triangle *pikachu_h = triangles.data();
-    Triangle *pikachu_d;
+    std::cerr << "Triangle count: " << triangle_count << std::endl;
+
+    Triangle *object_h = triangles.data();
+    Triangle *object_d;
     
-    cudaMalloc ( (void**) &pikachu_d, sizeof(Triangle)*triangle_count);
-    cudaMemcpy (pikachu_d, pikachu_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
+    cudaMalloc ( (void**) &object_d, sizeof(Triangle)*triangle_count);
+    cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
 
-    StlObject pikachu(pikachu_d, triangle_count);
+    StlObject object(object_d, triangle_count);
 
-    render<<<nblocks, nthreads>>>(frame, nx, ny, camera, pikachu);
+    gettimeofday(&startTime, nullptr); 
+    render<<<nblocks, nthreads>>>(frame, nx, ny, camera, object);
     cudaDeviceSynchronize();
+    gettimeofday(&endTime, nullptr);
+
+    millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
+
+    std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--) {
@@ -139,4 +182,5 @@ int main() {
     }
 
     cudaFree(frame);
+    cudaFree(object_d);
 }
