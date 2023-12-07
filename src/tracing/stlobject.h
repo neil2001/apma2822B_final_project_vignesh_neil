@@ -12,16 +12,16 @@
 class StlObject {
 
 public:
-    __host__ __device__ StlObject() {}
-    __host__ __device__ StlObject(Triangle *ts, int n) {
+    StlObject() {}
+    StlObject(Triangle *ts, int n) {
         triangles = ts;
         count = n;
-
+        std::cout << "making kdtree" << std::endl;
         tree = new KdTree();
-        tree->init(triangles, count);
+        tree->init(ts, n);
     }
 
-    __host__ __device__ bool hit(const ray& r, ray_hit& finalHitRec) {
+    bool hit(const ray& r, ray_hit& finalHitRec) {
         ray_hit rec;
         bool hasHit = false;
         float t_max = INFINITY;
@@ -36,7 +36,7 @@ public:
         return hasHit;
     }
 
-    __host__ __device__ bool hitTree(const ray& r, ray_hit& finalHitRec) {
+    bool hitTree(const ray& r, ray_hit& finalHitRec) {
         return tree->hit(r, finalHitRec);
     }
     

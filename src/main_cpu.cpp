@@ -20,7 +20,7 @@
  * - use streams and 1024 threads per block (switch to row-wise)
 */
 
-__host__ __device__ vec3 color(const ray& r, StlObject obj) {
+vec3 color(const ray& r, StlObject obj) {
 
     // NORMAL SHADING 
     /* 
@@ -73,7 +73,9 @@ __host__ __device__ vec3 color(const ray& r, StlObject obj) {
 void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 
     for (int j=0; j<n_rows; j++) {
-        std::cerr << "row " << j << std::endl;
+        if (j % 100 == 0) {
+            std::cerr << "row " << j << std::endl;
+        }
         float v = float(j) / float(n_rows);
         for (int i=0; i<n_cols; i++) {
             int pixel_index = j * n_cols + i;    
@@ -87,13 +89,13 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_cols = 1200;
-    int n_rows = 2400;
+    int n_cols = 600;
+    int n_rows = 1200;
 
-    int num_pixels = n_cols * n_rows;
+    // int num_pixels = n_cols * n_rows;
 
     // allocating image frame
-    vec3 frame[num_pixels];
+    vec3 frame[720000];
  
     // Pikachu
     Camera camera(
@@ -113,12 +115,12 @@ int main() {
     // cudaMalloc ( (void**) &camera_d, sizeof(Camera));
     // cudaMemcpy (camera_d, &camera_h, sizeof(Camera), cudaMemcpyHostToDevice); 
 
-    Triangle tetrahedron[4] = {
-        Triangle(vec3(0, -0.5, -1), vec3(0.5, 0.5, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1)),
-        Triangle(vec3(0, -0.5, -1), vec3(0.5, 0.5, -1), vec3(0, 0, -0.5), vec3(0, 0, 1)),
-        Triangle(vec3(0, 0, -0.5), vec3(0.5, 0.5, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1)),
-        Triangle(vec3(0, -0.5, -1), vec3(0, 0, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1))
-    };
+    // Triangle tetrahedron[4] = {
+    //     Triangle(vec3(0, -0.5, -1), vec3(0.5, 0.5, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1)),
+    //     Triangle(vec3(0, -0.5, -1), vec3(0.5, 0.5, -1), vec3(0, 0, -0.5), vec3(0, 0, 1)),
+    //     Triangle(vec3(0, 0, -0.5), vec3(0.5, 0.5, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1)),
+    //     Triangle(vec3(0, -0.5, -1), vec3(0, 0, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1))
+    // };
 
     // Triangle *tetra_d;
     // cudaMalloc ( (void**) &tetra_d, sizeof(Triangle)*4);
@@ -129,16 +131,16 @@ int main() {
     struct timeval startTime;
     struct timeval endTime;
 
-    // gettimeofday(&startTime, nullptr);
-    // std::vector<Triangle> triangles = StlParser::parseFile("examples/mando_mixed.stl");
-    // gettimeofday(&endTime, nullptr);
+    gettimeofday(&startTime, nullptr);
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    gettimeofday(&endTime, nullptr);
 
-    // int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
+    int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
 
-    // std::cerr << "Parsing time: " << millis << "ms" << std::endl;
+    std::cerr << "Parsing time: " << millis << "ms" << std::endl;
 
-    // size_t triangle_count = triangles.size();
-    // std::cerr << "Triangle count: " << triangle_count << std::endl;
+    size_t triangle_count = triangles.size();
+    std::cerr << "Triangle count: " << triangle_count << std::endl;
 
     // Triangle *object_h = triangles.data();
     // Triangle *object_d;
@@ -146,15 +148,15 @@ int main() {
     // cudaMalloc ( (void**) &object_d, sizeof(Triangle)*triangle_count);
     // cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
 
-    StlObject object(tetrahedron, 4);
+    StlObject object(triangles.data(), triangle_count);
 
     gettimeofday(&startTime, nullptr);
+    // std::cout << "starting render" << std::endl;
     render(frame, n_cols, n_rows, camera, object);
     // render<<<nblocks, nthreads>>>(frame, nx, ny, camera, object);
-    cudaDeviceSynchronize();
     gettimeofday(&endTime, nullptr);
 
-    int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
+    millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
@@ -169,4 +171,5 @@ int main() {
         }
     }
 
+    return 0;
 }

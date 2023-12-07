@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include "../tracing/vec3.h"
-#include "../tracing/stlobject.h"
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
 
@@ -34,8 +33,8 @@ struct boxPrim {
 class TreeNode {
 
 public:
-    __host__ __device__ TreeNode() {}
-    __host__ __device__ TreeNode(int l, Axis a, float s, bool leaf, 
+    TreeNode() {}
+    TreeNode(int l, Axis a, float s, bool leaf, 
                std::vector<Triangle> ts, TreeNode *ltree, 
                TreeNode *rtree, bbox bbox) {
         level = l;
@@ -48,7 +47,7 @@ public:
         bbox = bbox;
     }
 
-    __host__ __device__ bool hit(const ray& r);
+    bool hit(const ray& r);
 
     bool isLeaf;
     float split;
@@ -65,9 +64,9 @@ public:
 class KdTree {
 
 public: 
-    __host__ __device__ KdTree() {}
-    __host__ __device__ void init(Triangle *triangles, int n);
-    __host__ __device__ bool hit(const ray& r, ray_hit& hitRec);
+    KdTree() {}
+    void init(Triangle *triangles, int n);
+    bool hit(const ray& r, ray_hit finalHitRec);
 
     TreeNode *root;
 
@@ -75,11 +74,11 @@ private:
     const int MAXDEPTH = 10;
     const int MINOBJS = 2;
 
-    __host__ __device__ TreeNode* initHelper(std::vector<Triangle> ts, Axis a);
+    TreeNode* initHelper(std::vector<Triangle> ts, Axis a, int l);
     
-    __host__ __device__ bbox bound(Triangle *t);
-    __host__ __device__ bbox boundFromList(std::vector<Triangle> *items);
-    __host__ __device__ float quickSelectHelper(std::vector<float> &data, int k);
-    __host__ __device__ float quickSelect(std::vector<Triangle> ts, Axis a);
+    bbox bound(Triangle *t);
+    bbox boundFromList(std::vector<Triangle> *items);
+    float quickSelectHelper(std::vector<float> &data, int k);
+    float quickSelect(std::vector<Triangle> ts, Axis a);
 };
 

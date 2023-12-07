@@ -1,7 +1,7 @@
 #ifndef STLPARSERH
 #define STLPARSERH
 
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -12,6 +12,8 @@
 #include "stlobject.h"
 
 #define HEADER_LENGTH 80
+
+using namespace std;
 
 struct Facet
 {
@@ -25,32 +27,32 @@ struct Facet
 class StlParser{
 
 public:
-    __host__ StlParser() {}
-    __host__ static std::vector<Triangle> parseFile(const char* filename);
+    StlParser() {}
+    static std::vector<Triangle> parseFile(const char* filename);
 
 private: 
-    __host__ static std::ifstream open_binary_stl(const char* filename) {
+    static std::ifstream open_binary_stl(const char* filename) {
         return std::ifstream{filename, std::ifstream::in | std::ifstream::binary};
     }
 
     template <typename T>
-    __host__ static void read_binary_value(std::ifstream& in, T* dst) {
+    static void read_binary_value(std::ifstream& in, T* dst) {
         in.read(as_char_ptr(dst), sizeof(T));
     }
 
     template <typename T>
-    __host__ static char* as_char_ptr(T* pointer) {
+    static char* as_char_ptr(T* pointer) {
         return reinterpret_cast<char*>(pointer);
     }
 
     template <typename T>
-    __host__ static void read_binary_array(std::ifstream& in, T* dst, size_t array_length) {
+    static void read_binary_array(std::ifstream& in, T* dst, size_t array_length) {
         size_t n_bytes = array_length * sizeof(T);
         in.read(as_char_ptr(dst), n_bytes);
     }
 };
 
-__host__ std::vector<Triangle> StlParser::parseFile(const char* filename) {
+std::vector<Triangle> StlParser::parseFile(const char* filename) {
     std::ifstream in = open_binary_stl(filename);
 
     char header[HEADER_LENGTH] = "";
@@ -73,7 +75,7 @@ __host__ std::vector<Triangle> StlParser::parseFile(const char* filename) {
     float max_y = 0;
     float max_z = 0;
 
-    for (int i=0; i<triangle_count; i++) {
+    for (int i=0; i<int(triangle_count); i++) {
         Facet f{};
 
         read_binary_array<float>(in, f.normal, 3);

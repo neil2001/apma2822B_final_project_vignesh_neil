@@ -6,15 +6,15 @@
 class Camera {
 
 public:
-    __host__ __device__ Camera() {}
-    __host__ __device__ Camera(const vec3& pos, const vec3& ll, const vec3& h, const vec3& v) {
+    Camera() {}
+    Camera(const vec3& pos, const vec3& ll, const vec3& h, const vec3& v) {
         position = pos;
         lowerLeft = ll;
         horizontal = h;
         vertical = v;
     }
     
-    __host__ __device__ inline ray make_ray(float u, float v) { 
+    inline ray make_ray(float u, float v) { 
         return ray(position, (lowerLeft + u*horizontal + v*vertical) - position); 
     }
     

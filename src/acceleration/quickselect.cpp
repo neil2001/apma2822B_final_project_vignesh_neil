@@ -1,18 +1,20 @@
 #include <vector>
-#include "acceleration/kdtree.h"
-#include "tracing/vec3.h"
+#include "kdtree.h"
+#include "../tracing/vec3.h"
 #include <cmath>
+#include <random>
+
 
 std::random_device rd;
 std::mt19937 gen(rd()); // Mersenne Twister 19937 generator
 
-__host__ __device__ float KdTree::quickSelectHelper(std::vector<float> &data, int k) {
+ float KdTree::quickSelectHelper(std::vector<float> &data, int k) {
     if (data.size() == 1) {
         return data[0];
     }
     // choosing a random pivot
     std::uniform_int_distribution<> dist (0, data.size()-1);
-    int idx = dist(randomPicker);
+    int idx = dist(gen);
     float pivot = data[idx];
 
     std::vector<float> less;
@@ -29,16 +31,16 @@ __host__ __device__ float KdTree::quickSelectHelper(std::vector<float> &data, in
         }
     }
     // recursive calls to quickselect
-    if (k <= less.size()) {
+    if (k <= int(less.size())) {
         return quickSelectHelper(less, k);
-    } else if (k <= less.size() + equal.size()) {
+    } else if (k <= int(less.size() + equal.size())) {
         return pivot;
     } else {
         return quickSelectHelper(greater, k - less.size() - equal.size());
     }
 }
 
-__host__ __device__ float KdTree::quickSelect(std::vector<Triangle> ts, Axis a) {
+ float KdTree::quickSelect(std::vector<Triangle> ts, Axis a) {
     std::vector<float> data;
     int axis = static_cast<int>(a);
     int count = ts.size();
