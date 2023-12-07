@@ -9,6 +9,7 @@
 #include "tracing/triangle.h"
 #include "tracing/stlobject.h"
 #include "tracing/stlparser.h"
+#include "acceleration/kdtree.h"
 
 #define NUM_REFLECTIONS 10
 #define WARP_SIZE 32
@@ -37,7 +38,7 @@ __device__ vec3 color(const ray& r, StlObject obj) {
     // LAMBERTIAN
     vec3 kd(1.0, 1.0, 0.1);
     ray_hit rec;
-    if (obj.hit(r, rec)) {
+    if (obj.hitTreeGPU(r, rec)) {
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
         return kd * dot(rec.normal, rayDir);
     }
@@ -90,13 +91,13 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int nx = 1200;
-    int ny = 2400;
+    int n_cols = 1200;
+    int n_rows = 2400;
 
     int tx = 8;
     int ty = 8;
 
-    int num_pixels = nx * ny;
+    int num_pixels = n_cols * n_cols;
     size_t frame_size = num_pixels * sizeof(vec3);
 
     // allocating image frame
@@ -106,7 +107,7 @@ int main() {
     // dim3 nthreads(256, 1, 1);
     // dim3 nblocks( (N+nthreads.x-1)/nthreads.x, 1, 1);
     dim3 nthreads(tx, ty);
-    dim3 nblocks(nx/tx + 1, ny/ty + 1);
+    dim3 nblocks(n_cols/tx + 1, n_cols/ty + 1);
 
     // Pikachu
     Camera camera(
@@ -143,7 +144,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/mando_mixed.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
@@ -161,8 +162,28 @@ int main() {
 
     StlObject object(object_d, triangle_count);
 
+    // copy over GPU Tree
+    // copy over GPU TreeNodes
+    // set pointers and fields
+    TreeNodeGPU *treeNodesGPU_d;
+    int node_count = object.treeGPU->node_count;
+    cudaMalloc ( (void**) &treeNodesGPU_d, sizeof(TreeNodeGPU) * node_count);
+    cudaMemcpy (treeNodesGPU_d, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
+    
+    KdTreeGPU treeGPU_h(object_d, triangle_count, treeNodesGPU_d, node_count);
+
+    // TODO: copy over properly please
+    KdTreeGPU *treeGPU_d;
+    cudaMalloc ( (void**) &treeGPU_d, sizeof(KdTreeGPU));
+    cudaMemcpy (treeGPU_d, &treeGPU_h, sizeof(KdTreeGPU), cudaMemcpyHostToDevice);
+    
+    // treeGPU_d->nodes = treeNodesGPU_d;
+    // treeGPU_d->allTriangles = object_d;
+
+    object.treeGPU = treeGPU_d;
+
     gettimeofday(&startTime, nullptr); 
-    render<<<nblocks, nthreads>>>(frame, nx, ny, camera, object);
+    render<<<nblocks, nthreads>>>(frame, n_cols, n_rows, camera, object);
     cudaDeviceSynchronize();
     gettimeofday(&endTime, nullptr);
 
@@ -170,10 +191,10 @@ int main() {
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
-    std::cout << "P3\n" << nx << " " << ny << "\n255\n";
-    for (int j = ny-1; j >= 0; j--) {
-        for (int i = 0; i < nx; i++) {
-            size_t pixel_index = j*nx + i;
+    std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
+    for (int j = n_rows-1; j >= 0; j--) {
+        for (int i = 0; i < n_cols; i++) {
+            size_t pixel_index = j*n_cols + i;
             int ir = int(255.99*frame[pixel_index].r());
             int ig = int(255.99*frame[pixel_index].g());
             int ib = int(255.99*frame[pixel_index].b());

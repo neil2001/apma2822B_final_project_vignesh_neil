@@ -1,48 +1,43 @@
-# Makefile for C++ project
+# Makefile for CUDA project
 
-CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic
-LDFLAGS = 
+# Compiler
+CC := nvcc
 
-SRCDIR = src
-OBJDIR = obj
-BINDIR = bin
+# Flags
+CFLAGS := -std=c++11
+CUDAFLAGS := -arch=sm_60
 
-# List of source files
-SOURCES = $(wildcard $(SRCDIR)/**/*.cpp) \
-          $(SRCDIR)/main_cpu.cpp
+# Directories
+SRC_DIR := src
+OBJ_DIR := obj
+BIN_DIR := bin
 
-# Generate list of object files from source files
-OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SOURCES))
+# Source files
+SRC := $(wildcard $(SRC_DIR)/*.cu)
+OBJ := $(patsubst $(SRC_DIR)/%.cu, $(OBJ_DIR)/%.o, $(SRC))
 
-# Name of the executable
-EXECUTABLE = my_program
+# Executable name
+TARGET := $(BIN_DIR)/cuda_project
 
-# Path to the submodule
-TQDM_SUBMODULE_PATH = submodules/tqdm.cpp/include
+# Build rule
+all: $(TARGET)
 
-# Include directory for the submodule
-INCLUDE_DIRS = -I $(TQDM_SUBMODULE_PATH)
+$(TARGET): $(OBJ)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) $^ -o $@
 
-all: $(EXECUTABLE)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cu
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Rule to link object files into the executable
-$(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(INCLUDE_DIRS) -o $@ $^
-
-# Rule to compile source files into object files
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
+.PHONY: clean
 
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
-
-.PHONY: all clean
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 
 
-# # Makefile for C++ project
+# Makefile for C++ project
 
 # CXX = g++
 # CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic
@@ -62,16 +57,22 @@ clean:
 # # Name of the executable
 # EXECUTABLE = my_program
 
+# # Path to the submodule
+# TQDM_SUBMODULE_PATH = submodules/tqdm.cpp/include
+
+# # Include directory for the submodule
+# INCLUDE_DIRS = -I $(TQDM_SUBMODULE_PATH)
+
 # all: $(EXECUTABLE)
 
 # # Rule to link object files into the executable
 # $(EXECUTABLE): $(OBJECTS)
-# 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+# 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(INCLUDE_DIRS) -o $@ $^
 
 # # Rule to compile source files into object files
 # $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 # 	@mkdir -p $(@D)
-# 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+# 	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 # clean:
 # 	rm -rf $(OBJDIR) $(BINDIR)

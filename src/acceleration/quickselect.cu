@@ -8,8 +8,7 @@
 
 std::random_device rd;
 std::mt19937 gen(rd()); // Mersenne Twister 19937 generator
-
- float KdTree::quickSelectHelper(std::vector<float> &data, int k) {
+ __host__ __device__ float KdTree::quickSelectHelper(std::vector<float> &data, int k) {
     if (data.size() == 1) {
         return data[0];
     }
@@ -41,7 +40,7 @@ std::mt19937 gen(rd()); // Mersenne Twister 19937 generator
     }
 }
 
- float KdTree::quickSelect(std::vector<int> ts, Axis a) {
+__host__ __device__ float KdTree::quickSelect(std::vector<int> ts, Axis a) {
     std::vector<float> data;
     int axis = static_cast<int>(a);
     int count = ts.size();

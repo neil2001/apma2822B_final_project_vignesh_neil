@@ -1,9 +1,9 @@
 #include "kdtree.h"
-// #include <thrust/device_vector.h>
+#include <thrust/device_vector.h>
 
-bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
-    // thrust::host_vector<int> toVisit;
-    std::vector<int> toVisit;
+__host__ __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
+    thrust::host_vector<int> toVisit;
+    // std::vector<int> toVisit;
     toVisit.push_back(0);
     int visitIdx = 0;
     // std::deque<TreeNode*> toVisit = {this->root};

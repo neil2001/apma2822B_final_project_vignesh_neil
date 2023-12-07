@@ -12,8 +12,8 @@
 class StlObject {
 
 public:
-    StlObject() {}
-    StlObject(Triangle *ts, int n) {
+    __host__ StlObject() {}
+    __host__ StlObject(Triangle *ts, int n) {
         triangles = ts;
         count = n;
         // std::cout << "making kdtree" << std::endl;
@@ -22,7 +22,7 @@ public:
         treeGPU = new KdTreeGPU(ts, n, tree->nodeArray.data(), tree->nodeArray.size());
     }
 
-    bool hit(const ray& r, ray_hit& finalHitRec) {
+    __host__ __device__ bool hit(const ray& r, ray_hit& finalHitRec) {
         ray_hit rec;
         bool hasHit = false;
         float t_max = INFINITY;
@@ -37,11 +37,11 @@ public:
         return hasHit;
     }
 
-    bool hitTree(const ray& r, ray_hit& finalHitRec) {
+    __host__ __device__ bool hitTree(const ray& r, ray_hit& finalHitRec) {
         return tree->hit(r, finalHitRec);
     }
 
-    bool hitTreeGPU(const ray& r, ray_hit& finalHitRec) {
+    __device__ bool hitTreeGPU(const ray& r, ray_hit& finalHitRec) {
         return treeGPU->hit(r, finalHitRec);
     }
     

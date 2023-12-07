@@ -12,8 +12,8 @@
 class Triangle {
 
 public:
-    Triangle() {}
-    Triangle(const vec3& v1, const vec3& v2, const vec3& v3, const vec3& normal) {
+    __host__ __device__ Triangle() {}
+    __host__ __device__ Triangle(const vec3& v1, const vec3& v2, const vec3& v3, const vec3& normal) {
         v[0] = v1;
         v[1] = v2;
         v[2] = v3;
@@ -24,7 +24,7 @@ public:
         n.make_unit_vector();
     }
 
-    inline bool hit(const ray& r, float t_max, ray_hit& hitRec) {
+    __host__ __device__ inline bool hit(const ray& r, float t_max, ray_hit& hitRec) {
         // return true;
         float nDotDir = dot(r.direction(), n);
         if (fabs(nDotDir) < EPSILON) {

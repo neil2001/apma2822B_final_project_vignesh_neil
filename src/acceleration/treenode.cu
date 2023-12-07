@@ -5,7 +5,7 @@
 using namespace std;
 
 // From stack overflow: https://gamedev.stackexchange.com/questions/18436/most-efficient-aabb-vs-ray-collision-algorithms
-bool TreeNode::hit(const ray& r) {
+__host__ __device__ bool TreeNode::hit(const ray& r) {
 
     // r.dir is unit direction vector of ray
     // float dirfrac_x = 1.0f / r.direction()[0];
@@ -41,7 +41,7 @@ bool TreeNode::hit(const ray& r) {
     return true;
 }
 
-bool TreeNodeGPU::hit(const ray& r) {
+__host__ __device__ bool TreeNodeGPU::hit(const ray& r) {
 
     // r.dir is unit direction vector of ray
     // float dirfrac_x = 1.0f / r.direction()[0];

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef KDTREEH
+#define KDTREEH
 #include <vector>
 #include "../tracing/vec3.h"
 #include "../tracing/triangle.h"
@@ -61,8 +62,8 @@ public:
 class TreeNodeGPU {
 
 public:
-    TreeNodeGPU() {}
-    TreeNodeGPU(bool leafBool, int trisArraySize, int* trisArray, 
+    __host__ __device__ TreeNodeGPU() {}
+    __host__ __device__ TreeNodeGPU(bool leafBool, int trisArraySize, int* trisArray, 
                 bbox newBox, int curIdx, int leftIdx, int rightIdx) {
         isLeaf = leafBool;
         box = newBox;
@@ -75,7 +76,7 @@ public:
         rightNodeIdx = rightIdx;
     }
     
-    bool hit(const ray& r);
+    __host__ __device__ bool hit(const ray& r);
 
     bool isLeaf;
     bbox box;
@@ -90,8 +91,8 @@ public:
 class KdTreeGPU {
 
 public: 
-    KdTreeGPU() {}
-    KdTreeGPU(Triangle *ts, int nts, TreeNodeGPU *ns, int nns) {
+    __host__ __device__ KdTreeGPU() {}
+    __host__ __device__ KdTreeGPU(Triangle *ts, int nts, TreeNodeGPU *ns, int nns) {
         tri_count = nts;
         node_count = nns;
 
@@ -99,7 +100,7 @@ public:
         nodes = ns;
     }
 
-    bool hit(const ray& r, ray_hit& finalHitRec);
+    __host__ __device__ bool hit(const ray& r, ray_hit& finalHitRec);
 
     int tri_count;
     int node_count; 
@@ -110,11 +111,11 @@ public:
 class KdTree {
 
 public: 
-    KdTree() {}
-    void init(Triangle *triangles, int n);
-    void hitGPU(const ray& r, ray_hit& finalHitRec);
-    bool hit(const ray& r, ray_hit& finalHitRec);
-    void printTree();
+    __host__ __device__ KdTree() {}
+    __host__ void init(Triangle *triangles, int n);
+    __host__ __device__ void hitGPU(const ray& r, ray_hit& finalHitRec);
+    __host__ bool hit(const ray& r, ray_hit& finalHitRec);
+    __host__ void printTree();
 
     int numNodes;
     TreeNode *root;
@@ -128,14 +129,15 @@ private:
     // const int MAXDEPTH = 10;
     // const int MINOBJS = 2;
 
-    TreeNode* initHelper(std::vector<int> ts, Axis a, int l, int prevId);
-    void renumber();
-    void createNodeArray();
-    bbox bound(Triangle *t);
-    bbox boundFromList(std::vector<int> *items);
-    float quickSelectHelper(std::vector<float> &data, int k);
-    float quickSelect(std::vector<int> ts, Axis a);
-    void printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft);
-    void printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* node, bool isLeft);
+    __host__ TreeNode* initHelper(std::vector<int> ts, Axis a, int l, int prevId);
+    __host__ void renumber();
+    __host__ void createNodeArray();
+    __host__ bbox boundFromList(std::vector<int> *items);
+    __host__ float quickSelectHelper(std::vector<float> &data, int k);
+    __host__ float quickSelect(std::vector<int> ts, Axis a);
+    __host__ void printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft);
+    __host__ void printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* node, bool isLeft);
 };
+
+#endif
 

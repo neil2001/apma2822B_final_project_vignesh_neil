@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void KdTree::init(Triangle *triangles, int n) {
+__host__ void KdTree::init(Triangle *triangles, int n) {
     // median of first dimension, entire list
     // two leaves, 
     this->numNodes = 0;
@@ -28,7 +28,7 @@ void KdTree::init(Triangle *triangles, int n) {
     return;
 }
 
-TreeNode* KdTree::initHelper(std::vector<int> ts, Axis a, int l, int nextId) {
+__host__ TreeNode* KdTree::initHelper(std::vector<int> ts, Axis a, int l, int nextId) {
     // if (l == 0) {
     //     std::cout << "num triangles: " << ts.size() << std::endl;
     // }
@@ -86,7 +86,7 @@ TreeNode* KdTree::initHelper(std::vector<int> ts, Axis a, int l, int nextId) {
     return node;
 }
 
-void KdTree::renumber() {
+__host__ void KdTree::renumber() {
     std::deque<TreeNode*> toVisit = {this->root};
     int counter = 0;
     while (!toVisit.empty()) {
@@ -110,7 +110,7 @@ void KdTree::renumber() {
     }
 }
 
-void KdTree::createNodeArray() {
+__host__ void KdTree::createNodeArray() {
     // this->nodeArray = new TreeNodeGPU[this->numNodes];
     std::deque<TreeNode*> toVisit = {this->root};
     while (!toVisit.empty()) {
@@ -158,7 +158,7 @@ void KdTree::createNodeArray() {
     // this->nodeArray = allNodes;
 }
 
-bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
+__host__ bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
     // check if ray hits bounding box of curNode
     // check if ray hits bounding box of left or right child
     // traverse again with either the left or right child
@@ -225,7 +225,7 @@ bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
     return has_hit;
 }
 
-bbox KdTree::boundFromList(std::vector<int> *items) {
+__host__ bbox KdTree::boundFromList(std::vector<int> *items) {
     float min_x = INFINITY;
     float min_y = INFINITY;
     float min_z = INFINITY;
@@ -256,7 +256,7 @@ bbox KdTree::boundFromList(std::vector<int> *items) {
     return bbox{maxVec, minVec};
 }
 
-void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft)
+__host__ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft)
 {
     if( node != nullptr )
     {
@@ -274,7 +274,7 @@ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bo
     }
 }
 
-void KdTree::printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* node, bool isLeft)
+__host__ void KdTree::printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* node, bool isLeft)
 {   
     if (node->idx > 100) {
         return;
@@ -298,7 +298,7 @@ void KdTree::printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* no
     }
 }
 
-void KdTree::printTree()
+__host__ __device__ void KdTree::printTree()
 {
     // this->printTreeHelper("", this->root, false);
     // std::cerr << "num nodes: " << this->numNodes << std::endl;
