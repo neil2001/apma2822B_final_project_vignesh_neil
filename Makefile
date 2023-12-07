@@ -1,39 +1,70 @@
-# Makefile for CUDA project
-
-# Compiler
 CC := nvcc
-
-# Flags
 CFLAGS := -std=c++11
-CUDAFLAGS := -arch=sm_60
 
-# Directories
 SRC_DIR := src
+INC_DIR := include
 OBJ_DIR := obj
 BIN_DIR := bin
 
-# Source files
-SRC := $(wildcard $(SRC_DIR)/*.cu)
-OBJ := $(patsubst $(SRC_DIR)/%.cu, $(OBJ_DIR)/%.o, $(SRC))
+SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/*.cu) $(wildcard $(SRC_DIR)/acceleration/*.cpp) $(wildcard $(SRC_DIR)/tracing/*.cpp)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(filter %.cpp, $(SRC_FILES))) $(patsubst $(SRC_DIR)/%.cu, $(OBJ_DIR)/%.o, $(filter %.cu, $(SRC_FILES)))
+INC_FILES := -I$(INC_DIR)
 
-# Executable name
-TARGET := $(BIN_DIR)/cuda_project
+TARGET := $(BIN_DIR)/cuda_program
 
-# Build rule
-all: $(TARGET)
+$(TARGET): $(OBJ_FILES)
+	$(CC) $(CFLAGS) $(INC_FILES) $^ -o $@
 
-$(TARGET): $(OBJ)
-	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) $(INC_FILES) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cu
 	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-.PHONY: clean
+	$(CC) $(CFLAGS) $(INC_FILES) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
+
+.PHONY: clean
+
+
+# # Makefile for CUDA project
+
+# # Compiler
+# CC := nvcc
+
+# # Flags
+# CFLAGS := -std=c++11
+# CUDAFLAGS := -arch=sm_60
+
+# # Directories
+# SRC_DIR := src
+# OBJ_DIR := obj
+# BIN_DIR := bin
+
+# # Source files
+# SRC := $(wildcard $(SRC_DIR)/*.cu)
+# OBJ := $(patsubst $(SRC_DIR)/%.cu, $(OBJ_DIR)/%.o, $(SRC))
+
+# # Executable name
+# TARGET := $(BIN_DIR)/cuda_project
+
+# # Build rule
+# all: $(TARGET)
+
+# $(TARGET): $(OBJ)
+# 	@mkdir -p $(BIN_DIR)
+# 	$(CC) $(CFLAGS) $^ -o $@
+
+# $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cu
+# 	@mkdir -p $(OBJ_DIR)
+# 	$(CC) $(CFLAGS) -c $< -o $@
+
+# .PHONY: clean
+
+# clean:
+# 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
 
 

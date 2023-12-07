@@ -37,7 +37,7 @@ public:
         return hasHit;
     }
 
-    __host__ __device__ bool hitTree(const ray& r, ray_hit& finalHitRec) {
+    bool hitTree(const ray& r, ray_hit& finalHitRec) {
         return tree->hit(r, finalHitRec);
     }
 
