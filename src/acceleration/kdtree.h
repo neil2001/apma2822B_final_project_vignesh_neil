@@ -19,7 +19,7 @@ enum EdgeType {
 };
 
 struct bbox {
-    vec3 min;
+    vec3 min; // these aren't rly vectors tbh
     vec3 max;
     float surfaceArea;
     vec3 dims;
@@ -36,7 +36,7 @@ public:
     TreeNode() {}
     TreeNode(int l, Axis a, float s, bool leaf, 
                std::vector<Triangle> ts, TreeNode *ltree, 
-               TreeNode *rtree, bbox bbox) {
+               TreeNode *rtree, bbox bbox, int id) {
         level = l;
         axis = a;
         split = s;
@@ -45,6 +45,7 @@ public:
         left = ltree;
         right = rtree;
         bbox = bbox;
+        id = id;
     }
 
     bool hit(const ray& r);
@@ -53,6 +54,7 @@ public:
     float split;
     Axis axis;
     int level;
+    int id;
 
     std::vector<Triangle> triangles;
 
@@ -75,7 +77,7 @@ private:
     const int MAXDEPTH = 10;
     const int MINOBJS = 2;
 
-    TreeNode* initHelper(std::vector<Triangle> ts, Axis a, int l);
+    TreeNode* initHelper(std::vector<Triangle> ts, Axis a, int l, int prevId);
     
     bbox bound(Triangle *t);
     bbox boundFromList(std::vector<Triangle> *items);

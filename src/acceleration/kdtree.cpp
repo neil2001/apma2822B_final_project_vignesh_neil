@@ -13,17 +13,17 @@ void KdTree::init(Triangle *triangles, int n) {
 
     std::vector<Triangle> ts(triangles, triangles + n);
     std::cerr << "starting tree init" << std::endl;
-    this->root = initHelper(ts, X, 0);
+    this->root = initHelper(ts, X, 0, 1);
     std::cerr << "finished tree init" << std::endl;
     this->printTree();
     return;
 }
 
-TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
+TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l, int nextId) {
     bbox newBbox = boundFromList(&ts);
     if (ts.size() <= LEAF_SIZE) {
         TreeNode* leaf = new TreeNode(l, a, INFINITY, true, ts, NULL, 
-                                    NULL, newBbox);
+                                    NULL, newBbox, nextId);
         return leaf;
     }
     float s;
@@ -68,9 +68,11 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
         // }
     }
 
+    // std::cerr << "nextId:" << nextId << std::endl;
     TreeNode* node = new TreeNode(l, a, s, false, std::vector<Triangle>(),
-                                NULL, NULL, newBbox);
-    
+                                NULL, NULL, newBbox, nextId);
+    // std::cerr << "nodeId:" << node->id << std::endl; //TODO: thisis buggy???
+    // std::cerr << "nextId after creation:" << nextId << std::endl;
     // std::cerr << "s:" << s << std::endl;
     // std::cerr << "initial list size:" << ts.size() << ", left size:" << leftVector.size() << ", right size:" << rightVector.size() << std::endl;
     int axisNumRep = static_cast<int>(a);
@@ -78,8 +80,8 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
     axisNumRep%=3;
     a = static_cast<Axis>(axisNumRep);
     l++;
-    TreeNode *leftLeaf = initHelper(leftVector, a, l);
-    TreeNode *rightLeaf = initHelper(rightVector, a, l);
+    TreeNode *leftLeaf = initHelper(leftVector, a, l, nextId*2);
+    TreeNode *rightLeaf = initHelper(rightVector, a, l, nextId*2 + 1);
     node->left = leftLeaf;
     node->right = rightLeaf;
 
@@ -102,7 +104,7 @@ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
         TreeNode *curr = toVisit.front();
         toVisit.pop_front();
         if (!curr->hit(r) && curr->level > 0) {
-            std::cerr << "how did we get here, level:" << curr->level << std::endl;
+            // std::cerr << "how did we get here, level:" << curr->level << std::endl;
         }
         if (curr->isLeaf) {
             // LEAF NODE
@@ -114,7 +116,7 @@ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
                     t_max = rec.t;
                     finalHitRec = rec;
                 }
-                std::cerr << "hit " << hitCount << " triangle(s) in leaf node, level:" << curr->level << std::endl;
+                // std::cerr << "hit " << hitCount << " triangle(s) in leaf node, level:" << curr->level << std::endl;
             }
 
             continue;
@@ -122,19 +124,19 @@ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
 
         bool hitLeft = curr->left->hit(r);
         if (hitLeft) {
-            std::cerr << "hit left tree bounding box, level:" << curr->left->level << std::endl;
+            // std::cerr << "hit left tree bounding box, level:" << curr->left->level << std::endl;
             toVisit.push_back(curr->left);
         }
 
         bool hitRight = curr->right->hit(r);
 
         if (hitRight) {
-            std::cerr << "hit right tree bounding box, level:" << curr->right->level << std::endl;
+            // std::cerr << "hit right tree bounding box, level:" << curr->right->level << std::endl;
             toVisit.push_back(curr->right);
         }
 
         if (!hitLeft && !hitRight && curr->level > 0) {
-            std::cerr << "how did we hit neither box, but we hit the box above" << std::endl;
+            // std::cerr << "how did we hit neither box, but we hit the box above" << std::endl;
         }
     }
 
@@ -146,9 +148,9 @@ bbox KdTree::boundFromList(std::vector<Triangle> *items) {
     float min_y = INFINITY;
     float min_z = INFINITY;
     
-    float max_x = 0;
-    float max_y = 0;
-    float max_z = 0;
+    float max_x = -INFINITY;
+    float max_y = -INFINITY;
+    float max_z = -INFINITY;
 
     int count = items->size();
 
@@ -156,30 +158,15 @@ bbox KdTree::boundFromList(std::vector<Triangle> *items) {
 
     for (int i=0; i < count; i++) {
         t = (*items)[i];
+        for (int j = 0; j < 3; j++) {
+            max_x = max(max_x, t.v[j][0]);
+            max_y = max(max_y, t.v[j][1]);
+            max_z = max(max_z, t.v[j][2]);
 
-        max_x = max(max_x, t.v[0][0]);
-        max_x = max(max_x, t.v[1][0]);
-        max_x = max(max_x, t.v[2][0]);
-
-        max_y = max(max_y, t.v[0][1]);
-        max_y = max(max_y, t.v[1][1]);
-        max_y = max(max_y, t.v[2][1]);
-
-        max_z = max(max_z, t.v[0][2]);
-        max_z = max(max_z, t.v[1][2]);
-        max_z = max(max_z, t.v[2][2]);
-
-        min_x = min(min_x, t.v[0][0]);
-        min_x = min(min_x, t.v[1][0]);
-        min_x = min(min_x, t.v[2][0]);
-
-        min_y = min(min_y, t.v[0][1]);
-        min_y = min(min_y, t.v[1][1]);
-        min_y = min(min_y, t.v[2][1]);
-
-        min_z = min(min_z, t.v[0][2]);
-        min_z = min(min_z, t.v[1][2]);
-        min_z = min(min_z, t.v[2][2]);
+            min_x = min(min_x, t.v[j][0]);
+            min_y = min(min_y, t.v[j][1]);
+            min_z = min(min_z, t.v[j][2]);
+        }
     }
 
     vec3 maxVec(max_x, max_y, max_z);
@@ -204,6 +191,7 @@ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bo
         std::cerr << (isLeft ? "├──" : "└──" );
 
         // print the value of the node
+        // std::cerr << node->id << std::endl;
         std::cerr << node->level << std::endl;
 
         // enter the next tree level - left and right branch
