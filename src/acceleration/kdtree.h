@@ -6,7 +6,7 @@
 
 #define MAX_LEVEL 20
 #define MIN_OBJECTS 5
-#define LEAF_SIZE 10 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 8 // TODO: make sure to change in cpp file too
 
 
 enum Axis {
@@ -30,13 +30,13 @@ class TreeNode {
 public:
     TreeNode() {}
     TreeNode(int l, Axis a, float s, bool leaf, 
-               std::vector<Triangle> ts, TreeNode *ltree, 
+               std::vector<int> ts, TreeNode *ltree, 
                TreeNode *rtree, bbox newBox, int nid) {
         level = l;
         axis = a;
         split = s;
         isLeaf = leaf;
-        triangles = ts;
+        tri_idxs = ts;
         left = ltree;
         right = rtree;
         box = newBox;
@@ -51,7 +51,7 @@ public:
     int level;
     int id;
 
-    std::vector<Triangle> triangles;
+    std::vector<int> tri_idxs;
 
     TreeNode *left;
     TreeNode *right;
@@ -74,6 +74,9 @@ public:
         leftNodeIdx = leftIdx;
         rightNodeIdx = rightIdx;
     }
+    
+    bool hit(const ray& r);
+
     bool isLeaf;
     bbox box;
     int numTris;
@@ -81,6 +84,27 @@ public:
     int leftNodeIdx;
     int rightNodeIdx;
     int t_idxs[LEAF_SIZE];
+    
+};
+
+class KdTreeGPU {
+
+public: 
+    KdTreeGPU() {}
+    KdTreeGPU(Triangle *ts, int nts, TreeNodeGPU *ns, int nns) {
+        tri_count = nts;
+        node_count = nns;
+
+        allTriangles = ts;
+        nodes = ns;
+    }
+
+    bool hit(const ray& r, ray_hit& finalHitRec);
+
+    int tri_count;
+    int node_count; 
+    Triangle *allTriangles;
+    TreeNodeGPU *nodes;
 };
 
 class KdTree {
@@ -88,25 +112,30 @@ class KdTree {
 public: 
     KdTree() {}
     void init(Triangle *triangles, int n);
+    void hitGPU(const ray& r, ray_hit& finalHitRec);
     bool hit(const ray& r, ray_hit& finalHitRec);
-    int numNodes;
-
-
     void printTree();
-    TreeNode *root;
 
-    TreeNode *nodeArray;
+    int numNodes;
+    TreeNode *root;
+    // TreeNodeGPU *nodeArray;
+    std::vector<TreeNodeGPU> nodeArray;
+    Triangle *allTriangles;
+
+    // TreeNodeGPU *rootGPU;
 
 private:
-    const int MAXDEPTH = 10;
-    const int MINOBJS = 2;
+    // const int MAXDEPTH = 10;
+    // const int MINOBJS = 2;
 
-    TreeNode* initHelper(std::vector<Triangle> ts, Axis a, int l, int prevId);
-    void KdTree::createNodeArray();
+    TreeNode* initHelper(std::vector<int> ts, Axis a, int l, int prevId);
+    void renumber();
+    void createNodeArray();
     bbox bound(Triangle *t);
-    bbox boundFromList(std::vector<Triangle> *items);
+    bbox boundFromList(std::vector<int> *items);
     float quickSelectHelper(std::vector<float> &data, int k);
-    float quickSelect(std::vector<Triangle> ts, Axis a);
+    float quickSelect(std::vector<int> ts, Axis a);
     void printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft);
+    void printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* node, bool isLeft);
 };
 

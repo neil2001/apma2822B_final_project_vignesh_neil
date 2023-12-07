@@ -41,15 +41,17 @@ std::mt19937 gen(rd()); // Mersenne Twister 19937 generator
     }
 }
 
- float KdTree::quickSelect(std::vector<Triangle> ts, Axis a) {
+ float KdTree::quickSelect(std::vector<int> ts, Axis a) {
     std::vector<float> data;
     int axis = static_cast<int>(a);
     int count = ts.size();
 
+    Triangle t;
     for (int i=0; i<count; i++) {
-        data.push_back(ts[i].v[0][axis]);
-        data.push_back(ts[i].v[1][axis]);
-        data.push_back(ts[i].v[2][axis]);
+        t = this->allTriangles[ts[i]];
+        data.push_back(t.v[0][axis]);
+        data.push_back(t.v[1][axis]);
+        data.push_back(t.v[2][axis]);
     }
     std::sort(data.begin(), data.end());
     int dSize = data.size();

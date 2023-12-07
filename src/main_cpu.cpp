@@ -38,7 +38,7 @@ vec3 color(const ray& r, StlObject obj) {
     // LAMBERTIAN
     vec3 kd(1.0, 1.0, 0.1);
     ray_hit rec;
-    if (obj.hitTree(r, rec)) {
+    if (obj.hitTreeGPU(r, rec)) {
         // std::cout << "ray origin:" << r.A << ", ray dir:" << r.B << endl;
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
         return kd * dot(rec.normal, rayDir);
@@ -138,7 +138,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/mando_mixed.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;

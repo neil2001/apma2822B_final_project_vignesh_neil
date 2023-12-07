@@ -19,6 +19,7 @@ public:
         // std::cout << "making kdtree" << std::endl;
         tree = new KdTree();
         tree->init(ts, n);
+        treeGPU = new KdTreeGPU(ts, n, tree->nodeArray.data(), tree->nodeArray.size());
     }
 
     bool hit(const ray& r, ray_hit& finalHitRec) {
@@ -39,10 +40,15 @@ public:
     bool hitTree(const ray& r, ray_hit& finalHitRec) {
         return tree->hit(r, finalHitRec);
     }
+
+    bool hitTreeGPU(const ray& r, ray_hit& finalHitRec) {
+        return treeGPU->hit(r, finalHitRec);
+    }
     
     Triangle *triangles;
     int count;
     KdTree *tree;
+    KdTreeGPU *treeGPU;
 };
 
 #endif
