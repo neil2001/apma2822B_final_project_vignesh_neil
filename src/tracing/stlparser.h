@@ -71,9 +71,9 @@ std::vector<Triangle> StlParser::parseFile(const char* filename) {
     float min_y = INFINITY;
     float min_z = INFINITY;
     
-    float max_x = 0;
-    float max_y = 0;
-    float max_z = 0;
+    float max_x = -INFINITY;
+    float max_y = -INFINITY;
+    float max_z = -INFINITY;
 
     for (int i=0; i<int(triangle_count); i++) {
         Facet f{};

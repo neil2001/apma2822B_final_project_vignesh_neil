@@ -20,7 +20,17 @@ void KdTree::init(Triangle *triangles, int n) {
 }
 
 TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l, int nextId) {
+    // if (l == 0) {
+    //     std::cout << "num triangles: " << ts.size() << std::endl;
+    // }
+
     bbox newBbox = boundFromList(&ts);
+
+    if (l == 0) {
+        std::cerr << "bounding box on init min: " << newBbox.min << std::endl;
+        std::cerr << "bounding box on init max: " << newBbox.max << std::endl;
+    }
+
     if (ts.size() <= LEAF_SIZE) {
         TreeNode* leaf = new TreeNode(l, a, INFINITY, true, ts, NULL, 
                                     NULL, newBbox, nextId);
@@ -71,8 +81,13 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l, int nextId
     // std::cerr << "nextId:" << nextId << std::endl;
     TreeNode* node = new TreeNode(l, a, s, false, std::vector<Triangle>(),
                                 NULL, NULL, newBbox, nextId);
+                                
+    // std::cerr << "level expected:" << l << std::endl;
+    // std::cerr << "level node:" << node->level << std::endl;
+
     // std::cerr << "nodeId:" << node->id << std::endl; //TODO: thisis buggy???
     // std::cerr << "nextId after creation:" << nextId << std::endl;
+
     // std::cerr << "s:" << s << std::endl;
     // std::cerr << "initial list size:" << ts.size() << ", left size:" << leftVector.size() << ", right size:" << rightVector.size() << std::endl;
     int axisNumRep = static_cast<int>(a);
@@ -88,20 +103,30 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l, int nextId
     return node;
 }
 
-bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
+bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
     // check if ray hits bounding box of curNode
     // check if ray hits bounding box of left or right child
     // traverse again with either the left or right child
+    /*
+    bounding box max: 18.7272 -1.29747 1.01005e-08
+    ounding box min: 16.1273 -1.26498 1.01005e-08
+    */
 
     std::deque<TreeNode*> toVisit = {this->root};
 
     bool has_hit = false;
     float t_max = INFINITY;
-
     ray_hit rec;
 
     while (!toVisit.empty()) {
         TreeNode *curr = toVisit.front();
+
+        // if (curr->level == 0) {
+        //     std::cerr << "bounding box min: " << curr->box.min << std::endl;
+        //     std::cerr << "bounding box max: " << curr->box.max << std::endl;
+        // }
+
+
         toVisit.pop_front();
         if (!curr->hit(r) && curr->level > 0) {
             // std::cerr << "how did we get here, level:" << curr->level << std::endl;
@@ -191,8 +216,8 @@ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bo
         std::cerr << (isLeft ? "├──" : "└──" );
 
         // print the value of the node
-        // std::cerr << node->id << std::endl;
-        std::cerr << node->level << std::endl;
+        std::cerr << node->id << std::endl;
+        // std::cerr << node->level << std::endl;
 
         // enter the next tree level - left and right branch
         printTreeHelper( prefix + (isLeft ? "│   " : "    "), node->left, true);

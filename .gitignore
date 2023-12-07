@@ -1,1 +1,3 @@
 examples/*.stl
+out.ppm
+out.jpg

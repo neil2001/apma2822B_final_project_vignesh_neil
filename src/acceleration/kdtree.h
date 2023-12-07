@@ -36,7 +36,7 @@ public:
     TreeNode() {}
     TreeNode(int l, Axis a, float s, bool leaf, 
                std::vector<Triangle> ts, TreeNode *ltree, 
-               TreeNode *rtree, bbox bbox, int id) {
+               TreeNode *rtree, bbox newBox, int nid) {
         level = l;
         axis = a;
         split = s;
@@ -44,8 +44,8 @@ public:
         triangles = ts;
         left = ltree;
         right = rtree;
-        bbox = bbox;
-        id = id;
+        box = newBox;
+        id = nid;
     }
 
     bool hit(const ray& r);
@@ -68,7 +68,7 @@ class KdTree {
 public: 
     KdTree() {}
     void init(Triangle *triangles, int n);
-    bool hit(const ray& r, ray_hit finalHitRec);
+    bool hit(const ray& r, ray_hit& finalHitRec);
 
     void printTree();
     TreeNode *root;

@@ -9,7 +9,7 @@
 #include "tracing/triangle.h"
 #include "tracing/stlobject.h"
 #include "tracing/stlparser.h"
-#include "tqdm/tqdm.h"
+// #include "tqdm/tqdm.h"
 
 #define NUM_REFLECTIONS 10
 #define WARP_SIZE 32
@@ -38,8 +38,8 @@ vec3 color(const ray& r, StlObject obj) {
     // LAMBERTIAN
     vec3 kd(1.0, 1.0, 0.1);
     ray_hit rec;
-    if (obj.hit(r, rec)) {
-        std::cout << "ray origin:" << r.A << ", ray dir:" << r.B << endl;
+    if (obj.hitTree(r, rec)) {
+        // std::cout << "ray origin:" << r.A << ", ray dir:" << r.B << endl;
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
         return kd * dot(rec.normal, rayDir);
     }
@@ -92,8 +92,8 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_cols = 1200;
-    int n_rows = 2400;
+    int n_cols = 600;
+    int n_rows = 1200;
     // tqdm::tqdm_out = &std::cerr;
     // tqdm::set_ostream(std::cerr);
 
