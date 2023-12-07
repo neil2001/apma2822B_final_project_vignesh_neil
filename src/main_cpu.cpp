@@ -92,8 +92,8 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_cols = 600;
-    int n_rows = 1200;
+    int n_cols = 1200;
+    int n_rows = 2400;
     // tqdm::tqdm_out = &std::cerr;
     // tqdm::set_ostream(std::cerr);
 
@@ -138,7 +138,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/mando_mixed.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;

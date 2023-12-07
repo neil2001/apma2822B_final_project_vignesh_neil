@@ -3,7 +3,7 @@
 
 #include "kdtree.h"
 
-#define LEAF_SIZE 4
+#define LEAF_SIZE 10
 
 using namespace std;
 
