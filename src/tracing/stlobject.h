@@ -16,7 +16,7 @@ public:
     StlObject(Triangle *ts, int n) {
         triangles = ts;
         count = n;
-        std::cout << "making kdtree" << std::endl;
+        // std::cout << "making kdtree" << std::endl;
         tree = new KdTree();
         tree->init(ts, n);
     }

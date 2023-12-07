@@ -18,21 +18,65 @@ OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SOURCES))
 # Name of the executable
 EXECUTABLE = my_program
 
+# Path to the submodule
+TQDM_SUBMODULE_PATH = submodules/tqdm.cpp/include
+
+# Include directory for the submodule
+INCLUDE_DIRS = -I $(TQDM_SUBMODULE_PATH)
+
 all: $(EXECUTABLE)
 
 # Rule to link object files into the executable
 $(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(INCLUDE_DIRS) -o $@ $^
 
 # Rule to compile source files into object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
 
 .PHONY: all clean
+
+
+
+# # Makefile for C++ project
+
+# CXX = g++
+# CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic
+# LDFLAGS = 
+
+# SRCDIR = src
+# OBJDIR = obj
+# BINDIR = bin
+
+# # List of source files
+# SOURCES = $(wildcard $(SRCDIR)/**/*.cpp) \
+#           $(SRCDIR)/main_cpu.cpp
+
+# # Generate list of object files from source files
+# OBJECTS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SOURCES))
+
+# # Name of the executable
+# EXECUTABLE = my_program
+
+# all: $(EXECUTABLE)
+
+# # Rule to link object files into the executable
+# $(EXECUTABLE): $(OBJECTS)
+# 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+
+# # Rule to compile source files into object files
+# $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+# 	@mkdir -p $(@D)
+# 	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# clean:
+# 	rm -rf $(OBJDIR) $(BINDIR)
+
+# .PHONY: all clean
 
 
 

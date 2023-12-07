@@ -9,6 +9,7 @@
 #include "tracing/triangle.h"
 #include "tracing/stlobject.h"
 #include "tracing/stlparser.h"
+#include "tqdm/tqdm.h"
 
 #define NUM_REFLECTIONS 10
 #define WARP_SIZE 32
@@ -37,7 +38,7 @@ vec3 color(const ray& r, StlObject obj) {
     // LAMBERTIAN
     vec3 kd(1.0, 1.0, 0.1);
     ray_hit rec;
-    if (obj.hit(r, rec)) {
+    if (obj.hitTree(r, rec)) {
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
         return kd * dot(rec.normal, rayDir);
     }
@@ -72,7 +73,8 @@ vec3 color(const ray& r, StlObject obj) {
 
 void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 
-    for (int j=0; j<n_rows; j++) {
+    // for (int j : tqdm::range(n_rows)) {
+    for (int j = 0; j < n_rows; j++) {
         if (j % 100 == 0) {
             std::cerr << "row " << j << std::endl;
         }
@@ -89,13 +91,16 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_cols = 600;
-    int n_rows = 1200;
+    int n_cols = 1200;
+    int n_rows = 2400;
+    // tqdm::tqdm_out = &std::cerr;
+    // tqdm::set_ostream(std::cerr);
+
 
     // int num_pixels = n_cols * n_rows;
 
     // allocating image frame
-    vec3 frame[720000];
+    vec3 frame[2880000];
  
     // Pikachu
     Camera camera(

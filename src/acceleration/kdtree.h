@@ -68,6 +68,7 @@ public:
     void init(Triangle *triangles, int n);
     bool hit(const ray& r, ray_hit finalHitRec);
 
+    void printTree();
     TreeNode *root;
 
 private:
@@ -80,5 +81,6 @@ private:
     bbox boundFromList(std::vector<Triangle> *items);
     float quickSelectHelper(std::vector<float> &data, int k);
     float quickSelect(std::vector<Triangle> ts, Axis a);
+    void printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft);
 };
 

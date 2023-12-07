@@ -3,6 +3,7 @@
 #include "../tracing/vec3.h"
 #include <cmath>
 #include <random>
+#include <algorithm>
 
 
 std::random_device rd;
@@ -50,8 +51,15 @@ std::mt19937 gen(rd()); // Mersenne Twister 19937 generator
         data.push_back(ts[i].v[1][axis]);
         data.push_back(ts[i].v[2][axis]);
     }
-
-    return quickSelectHelper(data, count/2);
+    std::sort(data.begin(), data.end());
+    int dSize = data.size();
+    if (dSize % 2 == 0) {
+        return (data[dSize / 2 - 1] + data[dSize / 2]) / 2.0;
+    } else {
+        return data[dSize / 2];
+    }
+    // fix later
+    // return quickSelectHelper(data, count/2);
 }
 
 

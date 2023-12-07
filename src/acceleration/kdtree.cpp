@@ -12,7 +12,10 @@ void KdTree::init(Triangle *triangles, int n) {
     // two leaves, 
 
     std::vector<Triangle> ts(triangles, triangles + n);
+    std::cerr << "starting tree init" << std::endl;
     this->root = initHelper(ts, X, 0);
+    std::cerr << "finished tree init" << std::endl;
+    this->printTree();
     return;
 }
 
@@ -30,38 +33,46 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l) {
     for (Triangle t : ts){
 
         // TODO: use the center of the triangle instead
-        bool inLeft = false;
-        bool inRight = false;
-
-        if (t.v[0][a] <= s) {
-            inLeft = true;
-        } else {
-            inRight = true;
-        }
-
-        if (t.v[1][a] <= s) {
-            inLeft = true;
-        } else {
-            inRight = true;
-        }
-
-        if (t.v[2][a] <= s) {
-            inLeft = true;
-        } else {
-            inRight = true;
-        }
-
-        if (inLeft) {
+        float center = (t.v[0][a] + t.v[1][a] + t.v[2][a]) / 3.0;
+        if (center <= s) {
             leftVector.push_back(t);
-        }
-        if (inRight) {
+        } else {
             rightVector.push_back(t);
         }
+        // bool inLeft = false;
+        // bool inRight = false;
+
+        // if (t.v[0][a] <= s) {
+        //     inLeft = true;
+        // } else {
+        //     inRight = true;
+        // }
+
+        // if (t.v[1][a] <= s) {
+        //     inLeft = true;
+        // } else {
+        //     inRight = true;
+        // }
+
+        // if (t.v[2][a] <= s) {
+        //     inLeft = true;
+        // } else {
+        //     inRight = true;
+        // }
+
+        // if (inLeft) {
+        //     leftVector.push_back(t);
+        // }
+        // if (inRight) {
+        //     rightVector.push_back(t);
+        // }
     }
 
     TreeNode* node = new TreeNode(l, a, s, false, std::vector<Triangle>(),
                                 NULL, NULL, newBbox);
     
+    // std::cerr << "s:" << s << std::endl;
+    // std::cerr << "initial list size:" << ts.size() << ", left size:" << leftVector.size() << ", right size:" << rightVector.size() << std::endl;
     int axisNumRep = static_cast<int>(a);
     axisNumRep++;
     axisNumRep%=3;
@@ -90,25 +101,40 @@ bool KdTree::hit(const ray& r, ray_hit finalHitRec) {
     while (!toVisit.empty()) {
         TreeNode *curr = toVisit.front();
         toVisit.pop_front();
+        if (!curr->hit(r) && curr->level > 0) {
+            std::cerr << "how did we get here, level:" << curr->level << std::endl;
+        }
         if (curr->isLeaf) {
             // LEAF NODE
+            int hitCount = 0;
             for (Triangle t : curr->triangles) {
                 if (t.hit(r, t_max, rec)) {
+                    hitCount++;
                     has_hit = true;
                     t_max = rec.t;
                     finalHitRec = rec;
                 }
+                std::cerr << "hit " << hitCount << " triangle(s) in leaf node, level:" << curr->level << std::endl;
             }
 
             continue;
         }
 
-        if (curr->left->hit(r)) {
+        bool hitLeft = curr->left->hit(r);
+        if (hitLeft) {
+            std::cerr << "hit left tree bounding box, level:" << curr->left->level << std::endl;
             toVisit.push_back(curr->left);
         }
 
-        if (curr->right->hit(r)) {
+        bool hitRight = curr->right->hit(r);
+
+        if (hitRight) {
+            std::cerr << "hit right tree bounding box, level:" << curr->right->level << std::endl;
             toVisit.push_back(curr->right);
+        }
+
+        if (!hitLeft && !hitRight && curr->level > 0) {
+            std::cerr << "how did we hit neither box, but we hit the box above" << std::endl;
         }
     }
 
@@ -167,4 +193,26 @@ bbox KdTree::boundFromList(std::vector<Triangle> *items) {
     vec3 dims(xLen, yLen, zLen);
     
     return bbox{maxVec, minVec, surfaceArea, dims};
+}
+
+void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft)
+{
+    if( node != nullptr )
+    {
+        std::cerr << prefix;
+
+        std::cerr << (isLeft ? "├──" : "└──" );
+
+        // print the value of the node
+        std::cerr << node->level << std::endl;
+
+        // enter the next tree level - left and right branch
+        printTreeHelper( prefix + (isLeft ? "│   " : "    "), node->left, true);
+        printTreeHelper( prefix + (isLeft ? "│   " : "    "), node->right, false);
+    }
+}
+
+void KdTree::printTree()
+{
+    this->printTreeHelper("", this->root, false);    
 }
