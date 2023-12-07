@@ -6,6 +6,8 @@
 
 #define MAX_LEVEL 20
 #define MIN_OBJECTS 5
+#define LEAF_SIZE 10 // TODO: make sure to change in cpp file too
+
 
 enum Axis {
     X = 0,
@@ -21,13 +23,6 @@ enum EdgeType {
 struct bbox {
     vec3 min; // these aren't rly vectors tbh
     vec3 max;
-    float surfaceArea;
-    vec3 dims;
-};
-
-struct boxPrim {
-    bbox bounds;
-    Triangle t;
 };
 
 class TreeNode {
@@ -63,22 +58,51 @@ public:
     bbox box;
 };
 
+class TreeNodeGPU {
+
+public:
+    TreeNodeGPU() {}
+    TreeNodeGPU(bool leafBool, int trisArraySize, int* trisArray, 
+                bbox newBox, int curIdx, int leftIdx, int rightIdx) {
+        isLeaf = leafBool;
+        box = newBox;
+        numTris = trisArraySize;
+        for (int i = 0; i < numTris; i++) {
+            t_idxs[i] = trisArray[i];
+        }
+        idx = curIdx;
+        leftNodeIdx = leftIdx;
+        rightNodeIdx = rightIdx;
+    }
+    bool isLeaf;
+    bbox box;
+    int numTris;
+    int idx;
+    int leftNodeIdx;
+    int rightNodeIdx;
+    int t_idxs[LEAF_SIZE];
+};
+
 class KdTree {
 
 public: 
     KdTree() {}
     void init(Triangle *triangles, int n);
     bool hit(const ray& r, ray_hit& finalHitRec);
+    int numNodes;
+
 
     void printTree();
     TreeNode *root;
+
+    TreeNode *nodeArray;
 
 private:
     const int MAXDEPTH = 10;
     const int MINOBJS = 2;
 
     TreeNode* initHelper(std::vector<Triangle> ts, Axis a, int l, int prevId);
-    
+    void KdTree::createNodeArray();
     bbox bound(Triangle *t);
     bbox boundFromList(std::vector<Triangle> *items);
     float quickSelectHelper(std::vector<float> &data, int k);

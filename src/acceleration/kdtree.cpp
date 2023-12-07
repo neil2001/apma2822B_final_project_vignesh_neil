@@ -2,8 +2,8 @@
 #include <deque>
 
 #include "kdtree.h"
+#define LEAF_SIZE 10 //TODO: make sure to change in header file too
 
-#define LEAF_SIZE 10
 
 using namespace std;
 
@@ -16,6 +16,7 @@ void KdTree::init(Triangle *triangles, int n) {
     this->root = initHelper(ts, X, 0, 1);
     std::cerr << "finished tree init" << std::endl;
     this->printTree();
+    this->numNodes = 0;
     return;
 }
 
@@ -32,6 +33,7 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l, int nextId
     }
 
     if (ts.size() <= LEAF_SIZE) {
+        this->numNodes++;
         TreeNode* leaf = new TreeNode(l, a, INFINITY, true, ts, NULL, 
                                     NULL, newBbox, nextId);
         return leaf;
@@ -79,6 +81,7 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l, int nextId
     }
 
     // std::cerr << "nextId:" << nextId << std::endl;
+    this->numNodes++;
     TreeNode* node = new TreeNode(l, a, s, false, std::vector<Triangle>(),
                                 NULL, NULL, newBbox, nextId);
                                 
@@ -101,6 +104,16 @@ TreeNode* KdTree::initHelper(std::vector<Triangle> ts, Axis a, int l, int nextId
     node->right = rightLeaf;
 
     return node;
+}
+
+void KdTree::createNodeArray() {
+    TreeNode allNodes[this->numNodes];
+    std::deque<TreeNode*> toVisit = {this->root};
+    int counter = 0;
+    while (!toVisit.empty()) {
+        TreeNode *curr = toVisit.front();
+        curr->
+    }
 }
 
 bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
@@ -196,15 +209,7 @@ bbox KdTree::boundFromList(std::vector<Triangle> *items) {
 
     vec3 maxVec(max_x, max_y, max_z);
     vec3 minVec(min_x, min_y, min_z);
-
-    float xLen = fabs(max_x - min_x);
-    float yLen = fabs(max_y - min_y);
-    float zLen = fabs(max_z - min_z);
-
-    float surfaceArea = 2*xLen*yLen + 2*xLen*zLen + 2*yLen*zLen;
-    vec3 dims(xLen, yLen, zLen);
-    
-    return bbox{maxVec, minVec, surfaceArea, dims};
+    return bbox{maxVec, minVec};
 }
 
 void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft)
