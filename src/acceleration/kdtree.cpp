@@ -304,8 +304,5 @@ void KdTree::printTree()
     // std::cerr << "num nodes: " << this->numNodes << std::endl;
     // std::cerr << "node array size: " << this->nodeArray.size() << std::endl;
 
-    for (int i=0; i<this->numNodes; i++) {
-        std::cerr << this->nodeArray[i].idx << std::endl;
-    }
     this->printGPUTreeHelper("", &(this->nodeArray[0]), false);
 }

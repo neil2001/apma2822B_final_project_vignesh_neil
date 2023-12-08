@@ -40,7 +40,7 @@ vec3 color(const ray& r, StlObject obj) {
     ray_hit rec;
     if (obj.hitTreeGPU(r, rec)) {
         // std::cout << "ray origin:" << r.A << ", ray dir:" << r.B << endl;
-        vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
+        vec3 rayDir = unit_vector(r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal));
         return kd * dot(rec.normal, rayDir);
     }
 
@@ -92,16 +92,14 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_cols = 1200;
-    int n_rows = 2400;
-    // tqdm::tqdm_out = &std::cerr;
-    // tqdm::set_ostream(std::cerr);
+    int n_rows = 1200;
+    int n_cols = 600;
 
 
     // int num_pixels = n_cols * n_rows;
 
     // allocating image frame
-    vec3 frame[2880000];
+    vec3 frame[n_cols*n_rows];
  
     // Pikachu
     Camera camera(
@@ -133,12 +131,13 @@ int main() {
     // cudaMemcpy (tetra_d, tetrahedron, sizeof(Triangle)*4, cudaMemcpyHostToDevice);  
     
     // StlObject tetraObj(tetra_d, 4);
-
+    
     struct timeval startTime;
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
     std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/low_drogon.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
@@ -156,16 +155,26 @@ int main() {
 
     StlObject object(triangles.data(), triangle_count);
 
+    vec3 bboxMin = object.tree->root->box.min;
+    vec3 bboxMax = object.tree->root->box.max;
+    std::cerr << "bboxMin:" << bboxMin << std::endl;
+    std::cerr << "bboxMax:" << bboxMax << std::endl;
+    vec3 centroid = (bboxMin + bboxMax) / 2.0f;
+    std::cerr << "centroid:" << centroid << std::endl;
+
+    vec3 dragCamPos(30, -30, 20);
+
+    // Camera camera(dragCamPos, centroid, 20, 40);
     gettimeofday(&startTime, nullptr);
-    // std::cout << "starting render" << std::endl;
     render(frame, n_cols, n_rows, camera, object);
-    // render<<<nblocks, nthreads>>>(frame, nx, ny, camera, object);
     gettimeofday(&endTime, nullptr);
 
     millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
+
+    gettimeofday(&startTime, nullptr);
     std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
     for (int j = n_rows-1; j >= 0; j--) {
         for (int i = 0; i < n_cols; i++) {
@@ -176,6 +185,12 @@ int main() {
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
+    gettimeofday(&endTime, nullptr);
+
+    millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
+
+    std::cerr << "File writing time: " << millis << "ms" << std::endl;
+
 
     return 0;
 }

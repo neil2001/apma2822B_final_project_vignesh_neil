@@ -19,15 +19,14 @@ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
             // LEAF NODE
             int hitCount = 0;
             Triangle t;
-            for (int ti : curr->t_idxs) {
-                t = this->allTriangles[ti];
+            for (int i = 0; i < curr->numTris; i++){
+                t = this->allTriangles[curr->t_idxs[i]];
                 if (t.hit(r, t_max, rec)) {
                     hitCount++;
                     has_hit = true;
                     t_max = rec.t;
                     finalHitRec = rec;
                 }
-                // std::cerr << "hit " << hitCount << " triangle(s) in leaf node, level:" << curr->level << std::endl;
             }
 
             continue;
