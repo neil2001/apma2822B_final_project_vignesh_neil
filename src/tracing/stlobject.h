@@ -16,9 +16,9 @@ public:
     StlObject(Triangle *ts, int n) {
         triangles = ts;
         count = n;
-        std::cout << "making kdtree" << std::endl;
-        tree = new KdTree();
-        tree->init(ts, n);
+        // std::cout << "making kdtree" << std::endl;
+        // tree = new KdTree();
+        // tree->init(ts, n);
     }
 
     bool hit(const ray& r, ray_hit& finalHitRec) {

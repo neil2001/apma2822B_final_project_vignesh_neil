@@ -21,53 +21,18 @@
 */
 
 vec3 color(const ray& r, StlObject obj) {
-
-    // NORMAL SHADING 
-    /* 
-    ray_hit rec;
-
-    if (obj.hit(r, rec)) {
-        return 0.5f*vec3(rec.normal.x()+1.0f, rec.normal.y()+1.0f, rec.normal.z()+1.0f);
-    }
-    vec3 normalized = unit_vector(r.direction());
-    float t = 0.5f*(normalized.y() + 1.0f);
-    return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
-    */
-
     // LAMBERTIAN
     vec3 kd(1.0, 1.0, 0.1);
     ray_hit rec;
     if (obj.hit(r, rec)) {
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
+        rayDir.make_unit_vector();
         return kd * dot(rec.normal, rayDir);
     }
 
     vec3 normalized = unit_vector(r.direction());
     float t = 0.5f*(normalized.x() + 1.0f);
     return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
-
-    // REFLECTIONS
-    /*
-    ray curr = r;
-    float f_att = 1.0f;
-
-    vec3 rayDir;
-    for (int i=0; i<NUM_REFLECTIONS; i++) {
-        ray_hit rec;
-        if (obj.hit(curr, rec)) {
-            f_att *= 0.5f;
-            rayDir = curr.direction() - 2 * rec.normal * dot(curr.direction(), rec.normal);
-            curr = ray(rec.p, rayDir);
-        } else {
-            vec3 normalized = unit_vector(curr.direction());
-            float t = 0.5f*(normalized.y() + 1.0f);
-            vec3 c = (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
-            return f_att * c;
-        }
-    }
-
-    return vec3(0,0,0);
-    */
 }
 
 void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
@@ -160,6 +125,8 @@ int main() {
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
+    gettimeofday(&startTime, nullptr);
+
     std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
     for (int j = n_rows-1; j >= 0; j--) {
         for (int i = 0; i < n_cols; i++) {
@@ -170,6 +137,11 @@ int main() {
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
+
+    gettimeofday(&endTime, nullptr);
+
+    millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
+    std::cerr << "Printing time: " << millis << "ms" << std::endl;
 
     return 0;
 }

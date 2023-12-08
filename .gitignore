@@ -1,1 +1,5 @@
 examples/*.stl
+with_gpu.err
+with_gpu.out
+with_cpu.err
+with_gpu.out

@@ -4,9 +4,22 @@ module: cuda: To use: module load gcc/10.2
 module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
-47660
-6.08781 7.00741 36.6496
--10.4217 -4.17982 22
-Parsing time: 8ms
-Triangle count: 47660
-Rendering time: 1676ms
+412
+20.2097 36.0377 58.9513
+-10.2316 -11.1598 -1.01005e-08
+Parsing time: 3ms
+Triangle count: 412
+row 0
+row 100
+row 200
+row 300
+row 400
+row 500
+row 600
+row 700
+row 800
+row 900
+row 1000
+row 1100
+Rendering time: 35695ms
+Printing time: 133ms
