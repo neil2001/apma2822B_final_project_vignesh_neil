@@ -10,7 +10,7 @@
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
 
-#define LEAF_SIZE 16 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 8 // TODO: make sure to change in cpp file too
 #define BUF_SIZE 2048
 
 using namespace std;
@@ -159,9 +159,9 @@ __host__ void KdTree::init(Triangle *triangles, int n) {
     // std::vector<Triangle> ts(triangles, triangles + n);
     std::cerr << "starting tree init" << std::endl;
     this->root = initHelper(ts, X, 0, 1);
-    // std::cerr << "finished tree init" << std::endl;
+    std::cerr << "finished tree init" << std::endl;
     this->renumber();
-    // std::cerr << "renumbered tree" << std::endl;
+    std::cerr << "renumbered tree" << std::endl;
     this->createNodeArray();
     this->printTree();
     return;

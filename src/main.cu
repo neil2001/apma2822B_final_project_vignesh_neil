@@ -50,7 +50,7 @@ __device__ vec3 color(const ray& r, StlObject obj) {
     // LAMBERTIAN
     vec3 kd(1.0, 1.0, 0.1);
     ray_hit rec;
-    if (obj.hitTreeGPU(r, rec)) {
+    if (obj.hit(r, rec)) {
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
         rayDir.make_unit_vector();
         // printf("rayDir: %g, %g, %g \n", rayDir.x(), rayDir.y(), rayDir.z());
@@ -126,11 +126,11 @@ int main() {
     dim3 nblocks(n_cols/tx + 1, n_rows/ty + 1);
 
     // Pikachu
-    // Camera camera(
-    //     vec3(0.0, -64.0, 32.0), 
-    //     vec3(-16.0, 0.0, -16.0), 
-    //     vec3(48.0, 0.0, 0.0), 
-    //     vec3(0.0, 0.0, 96.0));
+    Camera camera(
+        vec3(0.0, -64.0, 32.0), 
+        vec3(-16.0, 0.0, -16.0), 
+        vec3(48.0, 0.0, 0.0), 
+        vec3(0.0, 0.0, 96.0));
 
     // Mandalorian
     // Camera camera(
@@ -160,7 +160,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/F-15.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
@@ -175,9 +175,13 @@ int main() {
     Triangle *object_h; //= triangles.data();
     // Triangle *object_d;
     
+    std::cerr << "mallocing triangles: " << std::endl;
+
     checkCudaErrors(cudaMallocManaged ( (void**) &object_h, sizeof(Triangle)*triangle_count));
     // checkCudaErrors(cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
     std::memcpy(object_h, triangles.data(), sizeof(Triangle)*triangle_count);
+
+    std::cerr << "making object: " << std::endl;
 
     // TODO: think about what this looks like
     StlObject object(object_h, triangle_count);
@@ -185,6 +189,7 @@ int main() {
     // copy over GPU Tree
     // copy over GPU TreeNodes
     // set pointers and fields
+
     TreeNodeGPU *treeNodesGPU_h;
     int node_count = object.treeGPU->node_count;
     checkCudaErrors(cudaMallocManaged ( (void**) &treeNodesGPU_h, sizeof(TreeNodeGPU) * node_count));
@@ -204,18 +209,16 @@ int main() {
     object.treeGPU = treeGPU_u;
     // object.triangles = object_d;
 
-    // making camera
+    // MAKING CAMERA
+    // vec3 bboxMin = object.tree->root->box.min;
+    // vec3 bboxMax = object.tree->root->box.max;
+    // std::cerr << "bboxMin:" << bboxMin << std::endl;
+    // std::cerr << "bboxMax:" << bboxMax << std::endl;
+    // vec3 centroid = (bboxMin + bboxMax) / 2.0f;
+    // std::cerr << "centroid:" << centroid << std::endl;
 
-    vec3 bboxMin = object.tree->root->box.min;
-    vec3 bboxMax = object.tree->root->box.max;
-    std::cerr << "bboxMin:" << bboxMin << std::endl;
-    std::cerr << "bboxMax:" << bboxMax << std::endl;
-    vec3 centroid = (bboxMin + bboxMax) / 2.0f;
-    std::cerr << "centroid:" << centroid << std::endl;
-
-    vec3 bmoPos(300, -300, 200);
-    // Camera camera(vec3(bboxMax.x()*1.5f, 0, 0), centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
-    Camera camera(bmoPos, centroid, 300, 150);
+    // vec3 bmoPos(300, -300, 200);
+    // Camera camera(bmoPos, centroid, 300, 150);
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 

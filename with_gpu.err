@@ -4,23 +4,14 @@ module: cuda: To use: module load gcc/10.2
 module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
-756060
-48.3974 37.706 101.107
--49.9884 -47.4766 0.00419133
-Parsing time: 125ms
-Triangle count: 756060
-making kdtree
-starting tree init
-creating tree size: 154653
-num nodes: 154653
-bboxMin:-49.9884 -47.4766 0.00419133
-bboxMax:48.3974 37.706 101.107
-centroid:-0.795486 -4.88527 50.5558
-look:-0.67276 0.660055 -0.334247
-pos:300 -300 200
-lowerLeft:-17.5319 -93.5341 -90.817
-horizontal:105.05 107.072 -0
-up:-71.5773 70.2255 282.746
-starting render
-Rendering time: 131ms
-File Output Time: 10596ms
+412
+20.2097 36.0377 58.9513
+-10.2316 -11.1598 -1.01005e-08
+Parsing time: 2ms
+Triangle count: 412
+mallocing triangles: 
+CUDA error = 35 at src/main.cu:180 'cudaMallocManaged ( (void**) &object_h, sizeof(Triangle)*triangle_count)' 
+Traceback (most recent call last):
+  File "./ppmtojpg.py", line 11, in <module>
+    Pidentifier, h, w, *pixels = re.findall(r'[0-9]+', contents)
+ValueError: not enough values to unpack (expected at least 3, got 0)
