@@ -10,7 +10,7 @@
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
 
-#define LEAF_SIZE 100 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 16 // TODO: make sure to change in cpp file too
 #define BUF_SIZE 2048
 
 using namespace std;
@@ -376,7 +376,7 @@ __host__ bbox KdTree::boundFromList(std::vector<int> *items) {
 
     vec3 maxVec(max_x, max_y, max_z);
     vec3 minVec(min_x, min_y, min_z);
-    return bbox{maxVec, minVec};
+    return bbox{minVec, maxVec};
 }
 
 __host__ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bool isLeft)

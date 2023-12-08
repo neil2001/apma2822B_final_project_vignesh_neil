@@ -107,8 +107,8 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int n_cols = 2400;
-    int n_rows = 7200;
+    int n_cols = 600;
+    int n_rows = 1200;
 
     int tx = 8;
     int ty = 8;
@@ -126,11 +126,11 @@ int main() {
     dim3 nblocks(n_cols/tx + 1, n_rows/ty + 1);
 
     // Pikachu
-    Camera camera(
-        vec3(0.0, -64.0, 32.0), 
-        vec3(-16.0, 0.0, -16.0), 
-        vec3(48.0, 0.0, 0.0), 
-        vec3(0.0, 0.0, 96.0));
+    // Camera camera(
+    //     vec3(0.0, -64.0, 32.0), 
+    //     vec3(-16.0, 0.0, -16.0), 
+    //     vec3(48.0, 0.0, 0.0), 
+    //     vec3(0.0, 0.0, 96.0));
 
     // Mandalorian
     // Camera camera(
@@ -161,6 +161,7 @@ int main() {
 
     gettimeofday(&startTime, nullptr);
     std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/F-15.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
 
@@ -202,6 +203,18 @@ int main() {
 
     object.treeGPU = treeGPU_u;
     // object.triangles = object_d;
+
+    // making camera
+
+    vec3 bboxMin = object.tree->root->box.min;
+    vec3 bboxMax = object.tree->root->box.max;
+    std::cerr << "bboxMin:" << bboxMin << std::endl;
+    std::cerr << "bboxMax:" << bboxMax << std::endl;
+    vec3 centroid = (bboxMin + bboxMax) / 2.0f;
+    std::cerr << "centroid:" << centroid << std::endl;
+
+    // Camera camera(vec3(bboxMax.x()*1.5f, 0, 0), centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
+    Camera camera(bboxMax*1.5f, centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 
