@@ -8,17 +8,17 @@ src/main_cpu.cpp: In function ‘int main()’:
 src/main_cpu.cpp:102:10: warning: ISO C++ forbids variable length array ‘frame’ [-Wvla]
   102 |     vec3 frame[n_cols*n_rows];
       |          ^~~~~
-47660
-6.08781 7.00741 36.6496
--10.4217 -4.17982 22
-Parsing time: 30ms
-Triangle count: 47660
+1151756
+50.5473 55.9293 48.7234
+-50.4095 -56.6719 -47.4505
+Parsing time: 422ms
+Triangle count: 1151756
 starting tree init
-bounding box on init min: 6.08781 7.00741 36.6496
-bounding box on init max: -10.4217 -4.17982 22
+bounding box on init min: 50.5473 55.9293 48.7234
+bounding box on init max: -50.4095 -56.6719 -47.4505
 finished tree init
 renumbered tree
-creating tree size: 16849
+creating tree size: 407407
 └──0
     ├──1
     │   ├──3
@@ -120,14 +120,14 @@ creating tree size: 16849
                 └──30
                     ├──61
                     └──62
-bboxMin:6.08781 7.00741 36.6496
-bboxMax:-10.4217 -4.17982 22
-centroid:-2.16696 1.4138 29.3248
-look:0.665337 0.728309 0.163987
-pos:-40 -40 20
-lowerLeft:-7.33792 10.5799 9.59555
-horizontal:14.7661 -13.4894 0
-up:-4.42417 -4.8429 39.4585
+bboxMin:50.5473 55.9293 48.7234
+bboxMax:-50.4095 -56.6719 -47.4505
+centroid:0.0688667 -0.371347 0.636446
+look:-0.64021 0.639564 -0.425546
+pos:300 -300 200
+lowerLeft:-7.77865 -98.5443 -135.104
+horizontal:106.012 106.12 -0
+up:-90.3175 90.2264 271.481
 row 0
 row 100
 row 200
@@ -140,5 +140,5 @@ row 800
 row 900
 row 1000
 row 1100
-Rendering time: 6063ms
-File writing time: 139ms
+Rendering time: 7724ms
+File writing time: 138ms

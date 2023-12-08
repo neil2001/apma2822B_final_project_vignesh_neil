@@ -136,7 +136,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/mando_mixed.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/neuron_ball.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/low_drogon.stl");
     gettimeofday(&endTime, nullptr);
 
@@ -163,12 +163,13 @@ int main() {
     std::cerr << "centroid:" << centroid << std::endl;
 
     // vec3 dragCamPos(30, -30, 20);
-    vec3 mandoPos(-40, -40, 20);
-    // vec3 bmoPos(300, -300, 200);
+    // vec3 mandoPos(-40, -40, 20);
+    vec3 bmoPos(300, -300, 200);
+    // vec3 neuronPos();
 
     // Camera camera(dragCamPos, centroid, 20, 40);
-    Camera camera(mandoPos, centroid, 40, 20);
-    // Camera camera(bmoPos, centroid, 300, 150);
+    // Camera camera(mandoPos, centroid, 40, 20);
+    Camera camera(bmoPos, centroid, 300, 150);
 
     gettimeofday(&startTime, nullptr);
     render(frame, n_cols, n_rows, camera, object);
