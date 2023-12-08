@@ -15,6 +15,18 @@
 #define WARP_SIZE 32
 #define N_THREAD 32
 
+
+
+#define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
+void check_cuda(cudaError_t result, char const *const func, const char *const file, int const line) {
+    if (result) {
+        std::cerr << "CUDA error = " << static_cast<unsigned int>(result) << " at " <<
+        file << ":" << line << " '" << func << "' \n";
+        // Make sure we call CUDA Device Reset before exiting
+        cudaDeviceReset();
+        exit(99);
+    }
+}
 /**
  * TODO:
  * - maybe do triangles as hostmalloc
@@ -42,7 +54,9 @@ __device__ vec3 color(const ray& r, StlObject obj) {
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
         rayDir.make_unit_vector();
         // printf("rayDir: %g, %g, %g \n", rayDir.x(), rayDir.y(), rayDir.z());
-        return kd * dot(rec.normal, rayDir);
+        float dotProd = dot(rec.normal, rayDir);
+        printf("dotProd:%g \n", dotProd);
+        return kd * dotProd;
     }
 
     vec3 normalized = unit_vector(r.direction());
@@ -92,8 +106,8 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int n_cols = 2400;
-    int n_rows = 4800;
+    int n_cols = 600;
+    int n_rows = 1200;
 
     int tx = 8;
     int ty = 8;
@@ -145,7 +159,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
@@ -158,8 +172,8 @@ int main() {
     Triangle *object_h = triangles.data();
     Triangle *object_d;
     
-    cudaMalloc ( (void**) &object_d, sizeof(Triangle)*triangle_count);
-    cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
+    checkCudaErrors(cudaMalloc ( (void**) &object_d, sizeof(Triangle)*triangle_count));
+    checkCudaErrors(cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
 
     // TODO: think about what this looks like
     StlObject object(object_h, triangle_count);
@@ -169,15 +183,15 @@ int main() {
     // set pointers and fields
     TreeNodeGPU *treeNodesGPU_d;
     int node_count = object.treeGPU->node_count;
-    cudaMalloc ( (void**) &treeNodesGPU_d, sizeof(TreeNodeGPU) * node_count);
-    cudaMemcpy (treeNodesGPU_d, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
+    checkCudaErrors(cudaMalloc ( (void**) &treeNodesGPU_d, sizeof(TreeNodeGPU) * node_count));
+    checkCudaErrors(cudaMemcpy (treeNodesGPU_d, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
     
     KdTreeGPU treeGPU_h(object_d, triangle_count, treeNodesGPU_d, node_count);
 
     // TODO: copy over properly please
     KdTreeGPU *treeGPU_d;
-    cudaMalloc ( (void**) &treeGPU_d, sizeof(KdTreeGPU));
-    cudaMemcpy (treeGPU_d, &treeGPU_h, sizeof(KdTreeGPU), cudaMemcpyHostToDevice);
+    checkCudaErrors(cudaMalloc ( (void**) &treeGPU_d, sizeof(KdTreeGPU)));
+    checkCudaErrors(cudaMemcpy (treeGPU_d, &treeGPU_h, sizeof(KdTreeGPU), cudaMemcpyHostToDevice));
     
     // treeGPU_d->nodes = treeNodesGPU_d;
     // treeGPU_d->allTriangles = object_d;
@@ -188,21 +202,26 @@ int main() {
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 
     render<<<nblocks, nthreads>>>(frame, n_cols, n_rows, camera, object);
-    cudaDeviceSynchronize();
+    cudaError_t kernelError = cudaGetLastError();
+    if (kernelError != cudaSuccess) {
+        // Handle kernel launch error
+        std::cerr << "Kernel launch error: " << cudaGetErrorString(kernelError) << std::endl;
+    }
+    checkCudaErrors(cudaDeviceSynchronize());
     gettimeofday(&endTime, nullptr);
 
     millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
-    std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
+    // std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
     for (int j = n_rows-1; j >= 0; j--) {
         for (int i = 0; i < n_cols; i++) {
             size_t pixel_index = j*n_cols + i;
             int ir = int(255.99*frame[pixel_index].r());
             int ig = int(255.99*frame[pixel_index].g());
             int ib = int(255.99*frame[pixel_index].b());
-            std::cout << ir << " " << ig << " " << ib << "\n";
+            // std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
 

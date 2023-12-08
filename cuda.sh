@@ -27,3 +27,4 @@ nvcc -O2 src/main.cu
 ./a.out > out.ppm
 # ./a.out 
 python3 ./ppmtojpg.py
+echo "done"

@@ -10,9 +10,7 @@
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
 
-#define MAX_LEVEL 20
-#define MIN_OBJECTS 5
-#define LEAF_SIZE 8 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 16 // TODO: make sure to change in cpp file too
 #define BUF_SIZE 2048
 
 using namespace std;
@@ -159,13 +157,13 @@ __host__ void KdTree::init(Triangle *triangles, int n) {
     std::iota(ts.begin(), ts.end(), 0);
 
     // std::vector<Triangle> ts(triangles, triangles + n);
-    // std::cerr << "starting tree init" << std::endl;
+    std::cerr << "starting tree init" << std::endl;
     this->root = initHelper(ts, X, 0, 1);
     // std::cerr << "finished tree init" << std::endl;
     this->renumber();
     // std::cerr << "renumbered tree" << std::endl;
     this->createNodeArray();
-    // this->printTree();
+    this->printTree();
     return;
 }
 
@@ -250,19 +248,11 @@ __host__ void KdTree::createNodeArray() {
         TreeNode *curr = toVisit.front();
         toVisit.pop_front();
 
-        // TreeNodeGPU *newNode = new TreeNodeGPU(false, 0, NULL, curr->box, curr->id, -1, -1);
-
         if (curr->isLeaf) {
+            // std::cerr << "creating leaf node for GPU" << std::endl;
             int t_count = curr->tri_idxs.size();
-            // for (int i = 0; i < t_count; i++) {
-            //     newNode->t_idxs[i] = curr->tri_idxs[i];
-            // }
-
-            // newNode->isLeaf = true;
-            // newNode->numTris = t_count;
-
-            // this->nodeArray[curr->id] = *newNode;
-            this->nodeArray.push_back(TreeNodeGPU(true, t_count, curr->tri_idxs.data(), curr->box, curr->id, -1, -1));
+            this->nodeArray.push_back(TreeNodeGPU(true, t_count, curr->tri_idxs.data(),
+                                                curr->box, curr->id, -1, -1));
             continue;
         }
 
@@ -398,7 +388,12 @@ __host__ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode*
         std::cerr << (isLeft ? "├──" : "└──" );
 
         // print the value of the node
-        std::cerr << node->id << std::endl;
+        // std::cerr << node->id << std::endl;
+        if (node->isLeaf) {
+            std::cerr << "hit leaf node with " << node->tri_idxs.size() << " leaves" << std::endl;
+        } else {
+            std::cerr << node->id << std::endl;
+        }
         // std::cerr << node->level << std::endl;
 
         // enter the next tree level - left and right branch
@@ -409,16 +404,17 @@ __host__ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode*
 
 __host__ void KdTree::printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* node, bool isLeft)
 {   
-    if (node->idx > 100) {
-        return;
-    }
-
     std::cerr << prefix;
 
     std::cerr << (isLeft ? "├──" : "└──" );
 
     // print the value of the node
-    std::cerr << node->idx << std::endl;
+    if (node->isLeaf) {
+        std::cerr << "hit leaf node";
+        std::cerr << node->numTris << std::endl;
+    } else {
+        std::cerr << node->idx << std::endl;
+    }
     // std::cerr << node->level << std::endl;
 
     // enter the next tree level - left and right branch
@@ -434,12 +430,9 @@ __host__ void KdTree::printGPUTreeHelper(const std::string& prefix, const TreeNo
 __host__ void KdTree::printTree()
 {
     // this->printTreeHelper("", this->root, false);
-    // std::cerr << "num nodes: " << this->numNodes << std::endl;
-    // std::cerr << "node array size: " << this->nodeArray.size() << std::endl;
+    std::cerr << "num nodes: " << this->numNodes << std::endl;
+    std::cerr << "node array size: " << this->nodeArray.size() << std::endl;
 
-    for (int i=0; i<this->numNodes; i++) {
-        std::cerr << this->nodeArray[i].idx << std::endl;
-    }
     this->printGPUTreeHelper("", &(this->nodeArray[0]), false);
 }
 
@@ -488,6 +481,10 @@ __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
             toVisit[pushIdx] = curr->leftNodeIdx;
             pushIdx++;
             pushIdx %= BUF_SIZE;
+            if (pushIdx == visitIdx) {
+                // TODO: Remove this
+                printf("BUFFER too small \n");
+            }
         }
 
         bool hitRight = this->nodes[curr->rightNodeIdx].hit(r);
@@ -496,7 +493,12 @@ __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
             toVisit[pushIdx] = curr->rightNodeIdx;
             pushIdx++;
             pushIdx %= BUF_SIZE;
+            if (pushIdx == visitIdx) {
+                // TODO: Remove this
+                printf("BUFFER too small \n");
+            }
         }
+        
     }
 
     return has_hit;
