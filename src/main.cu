@@ -107,8 +107,8 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int n_cols = 1200;
-    int n_rows = 2400;
+    int n_cols = 600;
+    int n_rows = 1200;
 
     int tx = 8;
     int ty = 8;
@@ -126,11 +126,11 @@ int main() {
     dim3 nblocks(n_cols/tx + 1, n_rows/ty + 1);
 
     // Pikachu
-    // Camera camera(
-    //     vec3(0.0, -64.0, 32.0), 
-    //     vec3(-16.0, 0.0, -16.0), 
-    //     vec3(48.0, 0.0, 0.0), 
-    //     vec3(0.0, 0.0, 96.0));
+    Camera camera(
+        vec3(0.0, -64.0, 32.0), 
+        vec3(-16.0, 0.0, -16.0), 
+        vec3(48.0, 0.0, 0.0), 
+        vec3(0.0, 0.0, 96.0));
 
     // Mandalorian
     // Camera camera(
@@ -160,9 +160,11 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/F-15.stl");
-    // std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/dragon.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/mando.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
@@ -177,7 +179,7 @@ int main() {
     
     checkCudaErrors(cudaMallocManaged ( (void**) &object_h, sizeof(Triangle)*triangle_count));
     // checkCudaErrors(cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
-    std::memcpy(object_h, triangles.data(), sizeof(Triangle)*triangle_count);
+    memcpy(object_h, triangles.data(), sizeof(Triangle)*triangle_count);
 
     // TODO: think about what this looks like
     StlObject object(object_h, triangle_count);
@@ -189,14 +191,14 @@ int main() {
     int node_count = object.treeGPU->node_count;
     checkCudaErrors(cudaMallocManaged ( (void**) &treeNodesGPU_h, sizeof(TreeNodeGPU) * node_count));
     // checkCudaErrors(cudaMemcpy (treeNodesGPU_d, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
-    std::memcpy(treeNodesGPU_h, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count);
+    memcpy(treeNodesGPU_h, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count);
 
     KdTreeGPU treeGPU_h(object_h, triangle_count, treeNodesGPU_h, node_count);
 
     KdTreeGPU *treeGPU_u;
     checkCudaErrors(cudaMallocManaged ( (void**) &treeGPU_u, sizeof(KdTreeGPU)));
     // checkCudaErrors(cudaMemcpy (treeGPU_d, &treeGPU_h, sizeof(KdTreeGPU), cudaMemcpyHostToDevice));
-    std::memcpy(treeGPU_u,&treeGPU_h, sizeof(KdTreeGPU));
+    memcpy(treeGPU_u,&treeGPU_h, sizeof(KdTreeGPU));
 
     // treeGPU_d->nodes = treeNodesGPU_d;
     // treeGPU_d->allTriangles = object_d;
@@ -213,9 +215,12 @@ int main() {
     vec3 centroid = (bboxMin + bboxMax) / 2.0f;
     std::cerr << "centroid:" << centroid << std::endl;
 
-    vec3 bmoPos(300, -300, 200);
-    // Camera camera(vec3(bboxMax.x()*1.5f, 0, 0), centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
-    Camera camera(bmoPos, centroid, 300, 150);
+    // vec3 dragPos(30, -30, 20);
+    // vec3 mandoPos(-40, -40, 20);
+    // vec3 bmoPos(300, -300, 200);
+    // Camera camera(mandoPos, centroid, 40, 20);
+    // Camera camera(dragPos, centroid, 20, 40);
+    // Camera camera(bboxMax*1.5f, centroid, 40, 20);
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 
