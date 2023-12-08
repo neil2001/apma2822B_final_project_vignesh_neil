@@ -107,8 +107,8 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int n_cols = 600;
-    int n_rows = 1200;
+    int n_cols = 1200;
+    int n_rows = 2400;
 
     int tx = 8;
     int ty = 8;
@@ -213,8 +213,9 @@ int main() {
     vec3 centroid = (bboxMin + bboxMax) / 2.0f;
     std::cerr << "centroid:" << centroid << std::endl;
 
+    vec3 bmoPos(300, -300, 200);
     // Camera camera(vec3(bboxMax.x()*1.5f, 0, 0), centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
-    Camera camera(bboxMax*1.5f, centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
+    Camera camera(bmoPos, centroid, 300, 150);
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 
@@ -236,6 +237,7 @@ int main() {
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
+    gettimeofday(&startTime, nullptr); 
     std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
     for (int j = n_rows-1; j >= 0; j--) {
         for (int i = 0; i < n_cols; i++) {
@@ -246,6 +248,11 @@ int main() {
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
+    gettimeofday(&endTime, nullptr);
+
+    millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
+
+    std::cerr << "File Output Time: " << millis << "ms" << std::endl;
 
     cudaFree(frame);
     cudaFree(treeNodesGPU_h);

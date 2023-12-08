@@ -7,7 +7,7 @@ module: gcc: "Note: loading the gcc module overrides the gcc version on the syst
 756060
 48.3974 37.706 101.107
 -49.9884 -47.4766 0.00419133
-Parsing time: 109ms
+Parsing time: 125ms
 Triangle count: 756060
 making kdtree
 starting tree init
@@ -16,10 +16,11 @@ num nodes: 154653
 bboxMin:-49.9884 -47.4766 0.00419133
 bboxMax:48.3974 37.706 101.107
 centroid:-0.795486 -4.88527 50.5558
-look:-0.527138 -0.441326 -0.726193
-pos:72.5961 56.559 151.661
-lowerLeft:-43.9479 -62.214 116.72
-horizontal:119.431 -0 -86.6938
-up:-33.1258 114.657 -45.6345
+look:-0.67276 0.660055 -0.334247
+pos:300 -300 200
+lowerLeft:-17.5319 -93.5341 -90.817
+horizontal:105.05 107.072 -0
+up:-71.5773 70.2255 282.746
 starting render
-Rendering time: 28ms
+Rendering time: 131ms
+File Output Time: 10596ms

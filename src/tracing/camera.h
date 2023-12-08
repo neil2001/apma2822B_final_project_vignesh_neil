@@ -21,7 +21,7 @@ public:
         // vec3 up = vec3(0, 1, 0);
         // up = unit_vector(cross(look, cross(look, right)));
 
-        vec3 up = vec3(0, 1, 0);
+        vec3 up = vec3(0, 0, 1);
         vec3 right = unit_vector(cross(look, up));
         //TODO: don't really know if this points right or left technically
         up = unit_vector(cross(right, look));
