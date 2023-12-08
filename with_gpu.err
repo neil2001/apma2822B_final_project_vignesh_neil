@@ -4,9 +4,11 @@ module: cuda: To use: module load gcc/10.2
 module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
-47660
-6.08781 7.00741 36.6496
--10.4217 -4.17982 22
-Parsing time: 8ms
-Triangle count: 47660
-Rendering time: 1676ms
+gcc: error: src/main.cu: No such file or directory
+gcc: fatal error: no input files
+compilation terminated.
+/var/spool/slurmd/job12331639/slurm_script: line 25: ./a.out: No such file or directory
+Traceback (most recent call last):
+  File "./ppmtojpg.py", line 11, in <module>
+    Pidentifier, h, w, *pixels = re.findall(r'[0-9]+', contents)
+ValueError: not enough values to unpack (expected at least 3, got 0)
