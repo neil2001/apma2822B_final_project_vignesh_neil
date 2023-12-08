@@ -10,7 +10,7 @@
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
 
-#define LEAF_SIZE 160 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 100 // TODO: make sure to change in cpp file too
 #define BUF_SIZE 2048
 
 using namespace std;
@@ -459,8 +459,8 @@ __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
             // LEAF NODE
             int hitCount = 0;
             Triangle t;
-            for (int ti : curr->t_idxs) {
-                t = this->allTriangles[ti];
+            for (int i = 0; i < curr->numTris; i++) {
+                t = this->allTriangles[curr->t_idxs[i]];
                 if (t.hit(r, t_max, rec)) {
                     hitCount++;
                     has_hit = true;

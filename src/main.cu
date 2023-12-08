@@ -55,7 +55,7 @@ __device__ vec3 color(const ray& r, StlObject obj) {
         rayDir.make_unit_vector();
         // printf("rayDir: %g, %g, %g \n", rayDir.x(), rayDir.y(), rayDir.z());
         float dotProd = dot(rec.normal, rayDir);
-        printf("dotProd:%g \n", dotProd);
+        // printf("dotProd:%g \n", dotProd);
         return kd * dotProd;
     }
 
@@ -102,12 +102,13 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 
     ray toTrace = camera.make_ray(u, v);
     // printf("%g, %g, %g\n", toTrace.direction().x(), toTrace.direction().y(), toTrace.direction().z());
-    frame[pixel_index] = color(toTrace, obj);
+    vec3 colorResult = color(toTrace, obj);
+    frame[pixel_index] = colorResult;
 }
 
 int main() {
-    int n_cols = 600;
-    int n_rows = 1200;
+    int n_cols = 2400;
+    int n_rows = 7200;
 
     int tx = 8;
     int ty = 8;
@@ -159,8 +160,8 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    // std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
@@ -211,6 +212,7 @@ int main() {
         std::cerr << "Kernel launch error: " << cudaGetErrorString(kernelError) << std::endl;
     }
     cudaDeviceSynchronize();
+    fflush(stdout);
     kernelError = cudaGetLastError();
     if (kernelError != cudaSuccess) {
         std::cerr << "Synchronize error: " << cudaGetErrorString(kernelError) << std::endl;
@@ -221,14 +223,14 @@ int main() {
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
-    // std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
+    std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
     for (int j = n_rows-1; j >= 0; j--) {
         for (int i = 0; i < n_cols; i++) {
             size_t pixel_index = j*n_cols + i;
             int ir = int(255.99*frame[pixel_index].r());
             int ig = int(255.99*frame[pixel_index].g());
             int ib = int(255.99*frame[pixel_index].b());
-            // std::cout << ir << " " << ig << " " << ib << "\n";
+            std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
 

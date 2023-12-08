@@ -4,19 +4,14 @@ module: cuda: To use: module load gcc/10.2
 module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
-412
-20.2097 36.0377 58.9513
--10.2316 -11.1598 -1.01005e-08
-Parsing time: 3ms
-Triangle count: 412
+756060
+48.3974 37.706 101.107
+-49.9884 -47.4766 0.00419133
+Parsing time: 133ms
+Triangle count: 756060
 making kdtree
 starting tree init
-creating tree size: 7
-num nodes: 7
+creating tree size: 22263
+num nodes: 22263
 starting render
-Synchronize error: an illegal memory access was encountered
-Rendering time: 65ms
-Traceback (most recent call last):
-  File "./ppmtojpg.py", line 11, in <module>
-    Pidentifier, h, w, *pixels = re.findall(r'[0-9]+', contents)
-ValueError: not enough values to unpack (expected at least 3, got 0)
+Rendering time: 329ms
