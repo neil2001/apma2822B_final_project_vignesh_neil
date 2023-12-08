@@ -159,7 +159,8 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
@@ -169,11 +170,12 @@ int main() {
     size_t triangle_count = triangles.size();
     std::cerr << "Triangle count: " << triangle_count << std::endl;
 
-    Triangle *object_h = triangles.data();
-    Triangle *object_d;
+    Triangle *object_h; //= triangles.data();
+    // Triangle *object_d;
     
-    checkCudaErrors(cudaMalloc ( (void**) &object_d, sizeof(Triangle)*triangle_count));
-    checkCudaErrors(cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
+    checkCudaErrors(cudaMallocManaged ( (void**) &object_h, sizeof(Triangle)*triangle_count));
+    // checkCudaErrors(cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
+    std::memcpy(object_h, triangles.data(), sizeof(Triangle)*triangle_count);
 
     // TODO: think about what this looks like
     StlObject object(object_h, triangle_count);
@@ -181,23 +183,24 @@ int main() {
     // copy over GPU Tree
     // copy over GPU TreeNodes
     // set pointers and fields
-    TreeNodeGPU *treeNodesGPU_d;
+    TreeNodeGPU *treeNodesGPU_h;
     int node_count = object.treeGPU->node_count;
-    checkCudaErrors(cudaMalloc ( (void**) &treeNodesGPU_d, sizeof(TreeNodeGPU) * node_count));
-    checkCudaErrors(cudaMemcpy (treeNodesGPU_d, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
-    
-    KdTreeGPU treeGPU_h(object_d, triangle_count, treeNodesGPU_d, node_count);
+    checkCudaErrors(cudaMallocManaged ( (void**) &treeNodesGPU_h, sizeof(TreeNodeGPU) * node_count));
+    // checkCudaErrors(cudaMemcpy (treeNodesGPU_d, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count, cudaMemcpyHostToDevice));  // TODO: Maybe use cuda host malloc? share the memory?
+    std::memcpy(treeNodesGPU_h, object.treeGPU->nodes, sizeof(TreeNodeGPU)*node_count);
 
-    // TODO: copy over properly please
-    KdTreeGPU *treeGPU_d;
-    checkCudaErrors(cudaMalloc ( (void**) &treeGPU_d, sizeof(KdTreeGPU)));
-    checkCudaErrors(cudaMemcpy (treeGPU_d, &treeGPU_h, sizeof(KdTreeGPU), cudaMemcpyHostToDevice));
-    
+    KdTreeGPU treeGPU_h(object_h, triangle_count, treeNodesGPU_h, node_count);
+
+    KdTreeGPU *treeGPU_u;
+    checkCudaErrors(cudaMallocManaged ( (void**) &treeGPU_u, sizeof(KdTreeGPU)));
+    // checkCudaErrors(cudaMemcpy (treeGPU_d, &treeGPU_h, sizeof(KdTreeGPU), cudaMemcpyHostToDevice));
+    std::memcpy(treeGPU_u,&treeGPU_h, sizeof(KdTreeGPU));
+
     // treeGPU_d->nodes = treeNodesGPU_d;
     // treeGPU_d->allTriangles = object_d;
 
-    object.treeGPU = treeGPU_d;
-    object.triangles = object_d;
+    object.treeGPU = treeGPU_u;
+    // object.triangles = object_d;
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 
@@ -207,7 +210,11 @@ int main() {
         // Handle kernel launch error
         std::cerr << "Kernel launch error: " << cudaGetErrorString(kernelError) << std::endl;
     }
-    checkCudaErrors(cudaDeviceSynchronize());
+    cudaDeviceSynchronize();
+    kernelError = cudaGetLastError();
+    if (kernelError != cudaSuccess) {
+        std::cerr << "Synchronize error: " << cudaGetErrorString(kernelError) << std::endl;
+    }
     gettimeofday(&endTime, nullptr);
 
     millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;
@@ -226,5 +233,7 @@ int main() {
     }
 
     cudaFree(frame);
-    cudaFree(object_d);
+    cudaFree(treeNodesGPU_h);
+    cudaFree(treeGPU_u);
+    // cudaFree(object_d);
 }
