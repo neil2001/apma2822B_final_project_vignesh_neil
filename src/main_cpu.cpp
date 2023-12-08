@@ -54,8 +54,8 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_cols = 600;
-    int n_rows = 1200;
+    int n_rows = 600;
+    int n_cols = 1200;
 
     // int num_pixels = n_cols * n_rows;
 
@@ -63,11 +63,11 @@ int main() {
     vec3 frame[720000];
  
     // Pikachu
-    Camera camera(
-        vec3(0.0, -64.0, 32.0), 
-        vec3(-16.0, 0.0, -16.0), 
-        vec3(48.0, 0.0, 0.0), 
-        vec3(0.0, 0.0, 96.0));
+    // Camera camera(
+    //     vec3(0.0, -64.0, 32.0), 
+    //     vec3(-16.0, 0.0, -16.0), 
+    //     vec3(48.0, 0.0, 0.0), 
+    //     vec3(0.0, 0.0, 96.0));
 
     // Mandalorian
     // Camera camera(
@@ -92,12 +92,15 @@ int main() {
     // cudaMemcpy (tetra_d, tetrahedron, sizeof(Triangle)*4, cudaMemcpyHostToDevice);  
     
     // StlObject tetraObj(tetra_d, 4);
+    
+    // Dragon
+    Camera camera(vec3(20,20,20), vec3(0,0,0), 20, 40);
 
     struct timeval startTime;
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/low_dragon.stl");
     gettimeofday(&endTime, nullptr);
 
     int millis = (endTime.tv_sec - startTime.tv_sec) * 1000 + (endTime.tv_usec - startTime.tv_usec) / 1000;

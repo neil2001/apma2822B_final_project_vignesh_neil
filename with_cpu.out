@@ -1,0 +1,15 @@
+## SLURM PROLOG ###############################################################
+##    Job ID : 12330791
+##  Job Name : cpu.sh
+##  Nodelist : node1742
+##      CPUs : 1
+##   Mem/CPU : 2800 MB
+## Directory : /oscar/home/nxu4/apma2822/apma2822B_final_project_vignesh_neil
+##   Job Started : Fri Dec  8 12:05:53 EST 2023
+###############################################################################
+rm -rf obj bin
+g++ -std=c++11 -Wall -Wextra -pedantic -c -o obj/acceleration/kdtree.o src/acceleration/kdtree.cpp
+g++ -std=c++11 -Wall -Wextra -pedantic -c -o obj/acceleration/quickselect.o src/acceleration/quickselect.cpp
+g++ -std=c++11 -Wall -Wextra -pedantic -c -o obj/acceleration/treenode.o src/acceleration/treenode.cpp
+g++ -std=c++11 -Wall -Wextra -pedantic -c -o obj/main_cpu.o src/main_cpu.cpp
+g++ -std=c++11 -Wall -Wextra -pedantic  -o my_program obj/acceleration/kdtree.o obj/acceleration/quickselect.o obj/acceleration/treenode.o obj/main_cpu.o
