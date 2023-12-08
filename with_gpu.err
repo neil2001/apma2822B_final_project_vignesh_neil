@@ -7,11 +7,9 @@ module: gcc: "Note: loading the gcc module overrides the gcc version on the syst
 412
 20.2097 36.0377 58.9513
 -10.2316 -11.1598 -1.01005e-08
-Parsing time: 8ms
+Parsing time: 1ms
 Triangle count: 412
-starting tree init
-/var/spool/slurmd/job12323955/slurm_script: line 25: 47469 Segmentation fault      ./a.out > out.ppm
-Traceback (most recent call last):
-  File "./ppmtojpg.py", line 11, in <module>
-    Pidentifier, h, w, *pixels = re.findall(r'[0-9]+', contents)
-ValueError: not enough values to unpack (expected at least 3, got 0)
+making kdtree
+creating tree size: 135
+starting render
+Rendering time: 25ms

@@ -40,6 +40,8 @@ __device__ vec3 color(const ray& r, StlObject obj) {
     ray_hit rec;
     if (obj.hitTreeGPU(r, rec)) {
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
+        rayDir.make_unit_vector();
+        // printf("rayDir: %g, %g, %g \n", rayDir.x(), rayDir.y(), rayDir.z());
         return kd * dot(rec.normal, rayDir);
     }
 
@@ -86,18 +88,17 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 
     ray toTrace = camera.make_ray(u, v);
     // printf("%g, %g, %g\n", toTrace.direction().x(), toTrace.direction().y(), toTrace.direction().z());
-    
     frame[pixel_index] = color(toTrace, obj);
 }
 
 int main() {
-    int n_cols = 1200;
-    int n_rows = 2400;
+    int n_cols = 2400;
+    int n_rows = 4800;
 
     int tx = 8;
     int ty = 8;
 
-    int num_pixels = n_cols * n_cols;
+    int num_pixels = n_cols * n_rows;
     size_t frame_size = num_pixels * sizeof(vec3);
 
     // allocating image frame
@@ -107,7 +108,7 @@ int main() {
     // dim3 nthreads(256, 1, 1);
     // dim3 nblocks( (N+nthreads.x-1)/nthreads.x, 1, 1);
     dim3 nthreads(tx, ty);
-    dim3 nblocks(n_cols/tx + 1, n_cols/ty + 1);
+    dim3 nblocks(n_cols/tx + 1, n_rows/ty + 1);
 
     // Pikachu
     Camera camera(
@@ -160,7 +161,8 @@ int main() {
     cudaMalloc ( (void**) &object_d, sizeof(Triangle)*triangle_count);
     cudaMemcpy (object_d, object_h, sizeof(Triangle)*triangle_count, cudaMemcpyHostToDevice);  // TODO: Maybe use cuda host malloc? share the memory?
 
-    StlObject object(object_d, triangle_count);
+    // TODO: think about what this looks like
+    StlObject object(object_h, triangle_count);
 
     // copy over GPU Tree
     // copy over GPU TreeNodes
@@ -181,7 +183,9 @@ int main() {
     // treeGPU_d->allTriangles = object_d;
 
     object.treeGPU = treeGPU_d;
+    object.triangles = object_d;
 
+    std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 
     render<<<nblocks, nthreads>>>(frame, n_cols, n_rows, camera, object);
     cudaDeviceSynchronize();

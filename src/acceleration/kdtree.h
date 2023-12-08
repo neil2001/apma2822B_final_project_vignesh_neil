@@ -159,13 +159,13 @@ __host__ void KdTree::init(Triangle *triangles, int n) {
     std::iota(ts.begin(), ts.end(), 0);
 
     // std::vector<Triangle> ts(triangles, triangles + n);
-    std::cerr << "starting tree init" << std::endl;
+    // std::cerr << "starting tree init" << std::endl;
     this->root = initHelper(ts, X, 0, 1);
-    std::cerr << "finished tree init" << std::endl;
+    // std::cerr << "finished tree init" << std::endl;
     this->renumber();
-    std::cerr << "renumbered tree" << std::endl;
+    // std::cerr << "renumbered tree" << std::endl;
     this->createNodeArray();
-    this->printTree();
+    // this->printTree();
     return;
 }
 
@@ -177,10 +177,10 @@ __host__ TreeNode* KdTree::initHelper(std::vector<int> ts, Axis a, int l, int ne
 
     bbox newBbox = boundFromList(&ts);
 
-    if (l == 0) {
-        std::cerr << "bounding box on init min: " << newBbox.min << std::endl;
-        std::cerr << "bounding box on init max: " << newBbox.max << std::endl;
-    }
+    // if (l == 0) {
+    //     std::cerr << "bounding box on init min: " << newBbox.min << std::endl;
+    //     std::cerr << "bounding box on init max: " << newBbox.max << std::endl;
+    // }
 
     if (ts.size() <= LEAF_SIZE) {
         TreeNode* leaf = new TreeNode(l, a, INFINITY, true, ts, NULL, 
@@ -202,18 +202,10 @@ __host__ TreeNode* KdTree::initHelper(std::vector<int> ts, Axis a, int l, int ne
         }
     }
 
-    // std::cerr << "nextId:" << nextId << std::endl;
     TreeNode* node = new TreeNode(l, a, s, false, std::vector<int>(),
                                 NULL, NULL, newBbox, nextId);
                                 
-    // std::cerr << "level expected:" << l << std::endl;
-    // std::cerr << "level node:" << node->level << std::endl;
-
-    // std::cerr << "nodeId:" << node->id << std::endl; //TODO: thisis buggy???
-    // std::cerr << "nextId after creation:" << nextId << std::endl;
-
-    // std::cerr << "s:" << s << std::endl;
-    // std::cerr << "initial list size:" << ts.size() << ", left size:" << leftVector.size() << ", right size:" << rightVector.size() << std::endl;
+    
     int axisNumRep = static_cast<int>(a);
     axisNumRep++;
     axisNumRep%=3;
@@ -480,7 +472,10 @@ __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
                     hitCount++;
                     has_hit = true;
                     t_max = rec.t;
-                    finalHitRec = rec;
+                    // finalHitRec = rec;
+                    finalHitRec.t = t_max;
+                    finalHitRec.p = rec.p;
+                    finalHitRec.normal = rec.normal;
                 }
                 // std::cerr << "hit " << hitCount << " triangle(s) in leaf node, level:" << curr->level << std::endl;
             }
@@ -490,8 +485,6 @@ __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
 
         bool hitLeft = this->nodes[curr->leftNodeIdx].hit(r);
         if (hitLeft) {
-            // std::cerr << "hit left tree bounding box, level:" << curr->left->level << std::endl;
-            // toVisit.push_back(curr->leftNodeIdx);
             toVisit[pushIdx] = curr->leftNodeIdx;
             pushIdx++;
             pushIdx %= BUF_SIZE;
@@ -500,15 +493,9 @@ __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
         bool hitRight = this->nodes[curr->rightNodeIdx].hit(r);
 
         if (hitRight) {
-            // std::cerr << "hit right tree bounding box, level:" << curr->right->level << std::endl;
-            // toVisit.push_back(curr->rightNodeIdx);
             toVisit[pushIdx] = curr->rightNodeIdx;
             pushIdx++;
             pushIdx %= BUF_SIZE;
-        }
-
-        if (!hitLeft && !hitRight) {
-            // std::cerr << "how did we hit neither box, but we hit the box above" << std::endl;
         }
     }
 

@@ -16,7 +16,7 @@ public:
     __host__ StlObject(Triangle *ts, int n) {
         triangles = ts;
         count = n;
-        // std::cout << "making kdtree" << std::endl;
+        std::cerr << "making kdtree" << std::endl;
         tree = new KdTree();
         tree->init(ts, n);
         treeGPU = new KdTreeGPU(ts, n, tree->nodeArray.data(), tree->nodeArray.size());

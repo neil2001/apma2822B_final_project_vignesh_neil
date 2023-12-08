@@ -10,7 +10,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/*.cu) $(wildcard
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(filter %.cpp, $(SRC_FILES))) $(patsubst $(SRC_DIR)/%.cu, $(OBJ_DIR)/%.o, $(filter %.cu, $(SRC_FILES)))
 INC_FILES := -I$(INC_DIR)
 
-TARGET := $(BIN_DIR)/cuda_program
+TARGET := cuda_program
 
 $(TARGET): $(OBJ_FILES)
 	$(CC) $(CFLAGS) $(INC_FILES) $^ -o $@
