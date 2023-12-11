@@ -6,7 +6,7 @@
 
 #define MAX_LEVEL 20
 #define MIN_OBJECTS 5
-#define LEAF_SIZE 8 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 128 // TODO: make sure to change in cpp file too
 
 
 enum Axis {

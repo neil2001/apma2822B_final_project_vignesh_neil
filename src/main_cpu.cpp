@@ -92,9 +92,8 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_rows = 1200;
-    int n_cols = 600;
-
+    int n_rows = 2400;
+    int n_cols = 4800;
 
     // int num_pixels = n_cols * n_rows;
 
@@ -136,7 +135,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/neuron_ball.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/hogwarts.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/low_drogon.stl");
     gettimeofday(&endTime, nullptr);
 
@@ -169,7 +168,7 @@ int main() {
 
     // Camera camera(dragCamPos, centroid, 20, 40);
     // Camera camera(mandoPos, centroid, 40, 20);
-    Camera camera(bmoPos, centroid, 300, 150);
+    Camera camera(bmoPos, centroid, 200, 400);
 
     gettimeofday(&startTime, nullptr);
     render(frame, n_cols, n_rows, camera, object);

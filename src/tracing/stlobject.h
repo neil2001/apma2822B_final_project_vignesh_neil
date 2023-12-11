@@ -19,6 +19,7 @@ public:
         // std::cout << "making kdtree" << std::endl;
         tree = new KdTree();
         tree->init(ts, n);
+        
         treeGPU = new KdTreeGPU(ts, n, tree->nodeArray.data(), tree->nodeArray.size());
     }
 
