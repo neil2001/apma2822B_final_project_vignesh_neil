@@ -34,19 +34,6 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
 */
 
 __device__ vec3 color(const ray& r, StlObject obj) {
-
-    // NORMAL SHADING 
-    /* 
-    ray_hit rec;
-
-    if (obj.hit(r, rec)) {
-        return 0.5f*vec3(rec.normal.x()+1.0f, rec.normal.y()+1.0f, rec.normal.z()+1.0f);
-    }
-    vec3 normalized = unit_vector(r.direction());
-    float t = 0.5f*(normalized.y() + 1.0f);
-    return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
-    */
-
     // LAMBERTIAN
     vec3 kd(1.0, 1.0, 0.1);
     ray_hit rec;
@@ -62,29 +49,6 @@ __device__ vec3 color(const ray& r, StlObject obj) {
     vec3 normalized = unit_vector(r.direction());
     float t = 0.5f*(normalized.x() + 1.0f);
     return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
-
-    // REFLECTIONS
-    /*
-    ray curr = r;
-    float f_att = 1.0f;
-
-    vec3 rayDir;
-    for (int i=0; i<NUM_REFLECTIONS; i++) {
-        ray_hit rec;
-        if (obj.hit(curr, rec)) {
-            f_att *= 0.5f;
-            rayDir = curr.direction() - 2 * rec.normal * dot(curr.direction(), rec.normal);
-            curr = ray(rec.p, rayDir);
-        } else {
-            vec3 normalized = unit_vector(curr.direction());
-            float t = 0.5f*(normalized.y() + 1.0f);
-            vec3 c = (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
-            return f_att * c;
-        }
-    }
-
-    return vec3(0,0,0);
-    */
 }
 
 __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObject obj) {
