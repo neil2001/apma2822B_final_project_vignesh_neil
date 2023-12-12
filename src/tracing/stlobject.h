@@ -52,7 +52,7 @@ public:
 
     vec3 color;
     vec3 specular;
-    vec3 shininess;
+    int shininess;
 };
 
 #endif

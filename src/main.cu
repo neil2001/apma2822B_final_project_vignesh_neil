@@ -2,6 +2,7 @@
 #include <time.h>
 #include <vector>
 #include <sys/time.h>
+#include <cstring>
 
 #include "tracing/vec3.h"
 #include "tracing/ray.h"
@@ -15,8 +16,6 @@
 #define NUM_REFLECTIONS 10
 #define WARP_SIZE 32
 #define N_THREAD 32
-
-using namespace std;
 
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
 void check_cuda(cudaError_t result, char const *const func, const char *const file, int const line) {
@@ -39,10 +38,10 @@ __device__ vec3 color(const ray& r, Camera c, StlObject obj, Lighting l) {
     ray_hit rec;
     if (obj.hitTreeGPU(r, rec)) {
         vec3 illumination(0,0,0);
-        Light light;
+        // Light light;
         vec3 dirToCam = c.position - rec.p;
         for (int i = 0; i < l.count; i++) {
-            light = l.lights[i];
+            Light light = l.lights[i];
             illumination += light.computePhong(rec.p, dirToCam, rec.normal, obj);
         }
 
@@ -87,8 +86,8 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
-    int n_cols = 1200;
-    int n_rows = 2400;
+    int n_cols = 2400;
+    int n_rows = 1200;
 
     int tx = 8;
     int ty = 8;
@@ -107,7 +106,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/balloon_dog.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/F-15.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
@@ -128,17 +127,23 @@ int main() {
 
     // TODO: think about what this looks like
     StlObject object(object_h, triangle_count);
-    object.color = vec3(0.3,0.3,1);
+    object.color = vec3(.7,.7,.7);
+    object.specular = vec3(1,1,1);
+    object.shininess = 15;
 
     std::vector<Light> lightVec;
-    Light light1();
-    light1.makePoint(vec3(1, 1, 0), vec3(1,0,0), vec3(50, 50, 50));
+    Light light1;
+    light1.makeDir(vec3(1, 0, 0), vec3(1,0,0), vec3(0, 1, 0));
 
-    Light light2();
-    light2.makeDir(vec3(0, 1, 1), vec3(1,0,0), vec3(0,0,-1));
+    Light light2;
+    light2.makeDir(vec3(0, 0, 1), vec3(1,0,0), vec3(0, 0, -1));
+
+    Light light3;
+    light3.makeDir(vec3(0, 1, 0), vec3(1,0,0), vec3(-1, 0, 0));
 
     lightVec.push_back(light1);
     lightVec.push_back(light2);
+    lightVec.push_back(light3);
 
     Light *lights;
     int lightCount = lightVec.size();
@@ -178,9 +183,9 @@ int main() {
     vec3 centroid = (bboxMin + bboxMax) / 2.0f;
     std::cerr << "centroid:" << centroid << std::endl;
 
-    vec3 bmoPos(300, -300, 200);
+    vec3 bmoPos(1800, -1800, 1200);
     // Camera camera(vec3(bboxMax.x()*1.5f, 0, 0), centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
-    Camera camera(bmoPos, centroid, 300, 150);
+    Camera camera(bmoPos, centroid, 900, 1800);
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 

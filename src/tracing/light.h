@@ -4,9 +4,9 @@
 #include "vec3.h"
 #include "ray.h"
 
-#define ka 0.2
-#define kd 0.5
-#define ks 0.5
+#define ka 0.5
+#define kd 0.3
+#define ks 0.8
 
 enum class LightType {
     LIGHT_POINT,
@@ -17,22 +17,22 @@ enum class LightType {
 class Light {
 
 public:
-    Light() {}
-    void makePoint(vec3 c, vec3 f_att, vec3 p) {
+    __host__ Light() {}
+    __host__ void makePoint(vec3 c, vec3 f_att, vec3 p) {
         type = LightType::LIGHT_POINT;
         color = c;
         attFunc = f_att;
         pos = p;
     }
 
-    void makeDir(vec3 c, vec3 f_att, vec3 d) {
+    __host__ void makeDir(vec3 c, vec3 f_att, vec3 d) {
         type = LightType::LIGHT_DIRECTIONAL;
         color = c;
         attFunc = f_att;
         dir = d;
     }
 
-    void makeSpot(vec3 c, vec3 f_att, vec3 position, float p, float a) {
+    __host__ void makeSpot(vec3 c, vec3 f_att, vec3 position, float p, float a) {
         type = LightType::LIGHT_SPOT;
         color = c;
         attFunc = f_att;
@@ -41,7 +41,7 @@ public:
         angle = a;
     }
 
-    vec3 computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject obj);
+    __device__ vec3 computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject obj);
     
     LightType type;
 
@@ -58,8 +58,8 @@ public:
 class Lighting {
     
 public:
-    Lighting() {}
-    Lighting(Light *lts, int c) {
+    __host__ Lighting() {}
+    __host__ Lighting(Light *lts, int c) {
         lights = lts;
         count = c;
     }
@@ -68,7 +68,7 @@ public:
     int count;
 };
 
-float falloff(float x, float inner, float outer) {
+__device__ float falloff(float x, float inner, float outer) {
     float xdiff = x - inner;
     float adiff = outer-inner;
     float c1 = -2 * pow((xdiff)/adiff, 3);
@@ -76,7 +76,7 @@ float falloff(float x, float inner, float outer) {
     return c1 + c2;
 }
 
-vec3 Light::computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject obj) {
+__device__ vec3 Light::computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject obj) {
     vec3 illumination = ka * vec3(0.7, 0.7, 0.7);
 
     normal.make_unit_vector();
@@ -94,7 +94,7 @@ vec3 Light::computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject ob
         case (LightType::LIGHT_SPOT): {
             surfaceToLight = vec3(this->pos) - position;
             float d = surfaceToLight.length();
-            fAtt = fmin(1, 1.0/(this->attFunc[0] + this->attFunc[1] + (d * d * this->attFunc[2])));
+            fAtt = min(1.f, (float) 1.0/(this->attFunc[0] + this->attFunc[1] + (d * d * this->attFunc[2])));
             break;
         }
     }
@@ -139,7 +139,7 @@ vec3 Light::computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject ob
     float specProd = dot(refDir, dirToCam);
     vec3 specular = specProd > 0 ? ks * obj.specular * float(pow(specProd, obj.shininess)) : vec3(0,0,0);
 
-    return light.color * fAtt * (diffuse + specular) * intensity;
+    return this->color * fAtt * (diffuse + specular) * intensity;
 }
 
 

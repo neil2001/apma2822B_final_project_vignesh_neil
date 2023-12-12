@@ -9,7 +9,7 @@
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
 
-#define LEAF_SIZE 16 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 64 // TODO: make sure to change in cpp file too
 #define BUF_SIZE 2048
 
 using namespace std;
