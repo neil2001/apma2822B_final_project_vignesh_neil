@@ -10,12 +10,13 @@
 #include "tracing/stlobject.h"
 #include "tracing/stlparser.h"
 #include "acceleration/kdtree.h"
+#include "tracing/light.h"
 
 #define NUM_REFLECTIONS 10
 #define WARP_SIZE 32
 #define N_THREAD 32
 
-
+using namespace std;
 
 #define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
 void check_cuda(cudaError_t result, char const *const func, const char *const file, int const line) {
@@ -33,25 +34,40 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
  * - use streams and 1024 threads per block (switch to row-wise)
 */
 
-__device__ vec3 color(const ray& r, StlObject obj) {
-    // LAMBERTIAN
-    vec3 kd(1.0, 1.0, 0.1);
+__device__ vec3 color(const ray& r, Camera c, StlObject obj, Lighting l) {
+    // PHONG
     ray_hit rec;
     if (obj.hitTreeGPU(r, rec)) {
-        vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
-        rayDir.make_unit_vector();
-        // printf("rayDir: %g, %g, %g \n", rayDir.x(), rayDir.y(), rayDir.z());
-        float dotProd = dot(rec.normal, rayDir);
-        // printf("dotProd:%g \n", dotProd);
-        return kd * dotProd;
+        vec3 illumination(0,0,0);
+        Light light;
+        vec3 dirToCam = c.position - rec.p;
+        for (int i = 0; i < l.count; i++) {
+            light = l.lights[i];
+            illumination += light.computePhong(rec.p, dirToCam, rec.normal, obj);
+        }
+
+        return illumination;
     }
+
+
+    // LAMBERTIAN
+    // vec3 kd(1.0, 1.0, 0.1);
+    // ray_hit rec;
+    // if (obj.hitTreeGPU(r, rec)) {
+    //     vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
+    //     rayDir.make_unit_vector();
+    //     // printf("rayDir: %g, %g, %g \n", rayDir.x(), rayDir.y(), rayDir.z());
+    //     float dotProd = dot(rec.normal, rayDir);
+    //     // printf("dotProd:%g \n", dotProd);
+    //     return kd * dotProd;
+    // }
 
     vec3 normalized = unit_vector(r.direction());
     float t = 0.5f*(normalized.x() + 1.0f);
     return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0); 
 }
 
-__global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObject obj) {
+__global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObject obj, Lighting l) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     int j = threadIdx.y + blockIdx.y * blockDim.y;
 
@@ -66,7 +82,7 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 
     ray toTrace = camera.make_ray(u, v);
     // printf("%g, %g, %g\n", toTrace.direction().x(), toTrace.direction().y(), toTrace.direction().z());
-    vec3 colorResult = color(toTrace, obj);
+    vec3 colorResult = color(toTrace, camera, obj, l);
     frame[pixel_index] = colorResult;
 }
 
@@ -84,41 +100,8 @@ int main() {
     vec3 *frame;
     cudaMallocManaged((void **) &frame, frame_size);
 
-    // dim3 nthreads(256, 1, 1);
-    // dim3 nblocks( (N+nthreads.x-1)/nthreads.x, 1, 1);
     dim3 nthreads(tx, ty);
     dim3 nblocks(n_cols/tx + 1, n_rows/ty + 1);
-
-    // Pikachu
-    // Camera camera(
-    //     vec3(0.0, -64.0, 32.0), 
-    //     vec3(-16.0, 0.0, -16.0), 
-    //     vec3(48.0, 0.0, 0.0), 
-    //     vec3(0.0, 0.0, 96.0));
-
-    // Mandalorian
-    // Camera camera(
-    //     vec3(0.0, -16.0, 16.0), 
-    //     vec3(-16.0, 0.0, -16.0), 
-    //     vec3(24.0, 0.0, 0.0), 
-    //     vec3(0.0, 0.0, 48.0));
-
-    // Camera *camera_d;
-    // cudaMalloc ( (void**) &camera_d, sizeof(Camera));
-    // cudaMemcpy (camera_d, &camera_h, sizeof(Camera), cudaMemcpyHostToDevice); 
-
-    // Triangle tetrahedron[4] = {
-    //     Triangle(vec3(0, -0.5, -1), vec3(0.5, 0.5, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1)),
-    //     Triangle(vec3(0, -0.5, -1), vec3(0.5, 0.5, -1), vec3(0, 0, -0.5), vec3(0, 0, 1)),
-    //     Triangle(vec3(0, 0, -0.5), vec3(0.5, 0.5, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1)),
-    //     Triangle(vec3(0, -0.5, -1), vec3(0, 0, -1), vec3(-0.5, 0.5, -1), vec3(0, 0, 1))
-    // };
-
-    // Triangle *tetra_d;
-    // cudaMalloc ( (void**) &tetra_d, sizeof(Triangle)*4);
-    // cudaMemcpy (tetra_d, tetrahedron, sizeof(Triangle)*4, cudaMemcpyHostToDevice);  
-    
-    // StlObject tetraObj(tetra_d, 4);
 
     struct timeval startTime;
     struct timeval endTime;
@@ -145,6 +128,24 @@ int main() {
 
     // TODO: think about what this looks like
     StlObject object(object_h, triangle_count);
+    object.color = vec3(0.3,0.3,1);
+
+    std::vector<Light> lightVec;
+    Light light1();
+    light1.makePoint(vec3(1, 1, 0), vec3(1,0,0), vec3(50, 50, 50));
+
+    Light light2();
+    light2.makeDir(vec3(0, 1, 1), vec3(1,0,0), vec3(0,0,-1));
+
+    lightVec.push_back(light1);
+    lightVec.push_back(light2);
+
+    Light *lights;
+    int lightCount = lightVec.size();
+    checkCudaErrors(cudaMallocManaged ( (void**) &lights, sizeof(Light) * lightCount));
+    std::memcpy(lights, lightVec.data(), sizeof(Light) * lightCount);
+
+    Lighting lighting(lights, lightCount);
 
     // copy over GPU Tree
     // copy over GPU TreeNodes
@@ -183,7 +184,7 @@ int main() {
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 
-    render<<<nblocks, nthreads>>>(frame, n_cols, n_rows, camera, object);
+    render<<<nblocks, nthreads>>>(frame, n_cols, n_rows, camera, object, lighting);
     cudaError_t kernelError = cudaGetLastError();
     if (kernelError != cudaSuccess) {
         // Handle kernel launch error

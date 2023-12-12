@@ -4,6 +4,10 @@
 #include "vec3.h"
 #include "ray.h"
 
+#define ka 0.2
+#define kd 0.5
+#define ks 0.5
+
 enum class LightType {
     LIGHT_POINT,
     LIGHT_DIRECTIONAL,
@@ -28,7 +32,7 @@ public:
         dir = d;
     }
 
-    void makeSpot(vec3 c, vec3 f_att, vec3 position, vec3 p, vec3 a) {
+    void makeSpot(vec3 c, vec3 f_att, vec3 position, float p, float a) {
         type = LightType::LIGHT_SPOT;
         color = c;
         attFunc = f_att;
@@ -37,7 +41,7 @@ public:
         angle = a;
     }
 
-    vec3 computePhong(vec3 position, vec3 dirToCam, Triangle t);
+    vec3 computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject obj);
     
     LightType type;
 
@@ -51,6 +55,19 @@ public:
     float angle;         // Only applicable to spot lights, in RADIANS
 };
 
+class Lighting {
+    
+public:
+    Lighting() {}
+    Lighting(Light *lts, int c) {
+        lights = lts;
+        count = c;
+    }
+    
+    Light *lights;
+    int count;
+};
+
 float falloff(float x, float inner, float outer) {
     float xdiff = x - inner;
     float adiff = outer-inner;
@@ -59,10 +76,10 @@ float falloff(float x, float inner, float outer) {
     return c1 + c2;
 }
 
-vec3 Light::computePhong(vec3 position, vec3 dirToCam, Triangle t, const StlObject& obj) {
-    vec3 illumination(0.f,0.f,0.f);
+vec3 Light::computePhong(vec3 position, vec3 dirToCam, vec3 normal, StlObject obj) {
+    vec3 illumination = ka * vec3(0.7, 0.7, 0.7);
 
-    vec3 normal = t.n;
+    normal.make_unit_vector();
     dirToCam.make_unit_vector();
 
     vec3 surfaceToLight;
@@ -96,7 +113,7 @@ vec3 Light::computePhong(vec3 position, vec3 dirToCam, Triangle t, const StlObje
     }
 
     float intensity = 1;
-    if (light.type == LightType::LIGHT_SPOT) {
+    if (this->type == LightType::LIGHT_SPOT) {
         float dotProd = dot(-surfaceToLight, this->dir);
         float normProd = surfaceToLight.length() * this->dir.length();
         float lightToIntAngle = acos(dotProd/normProd);
@@ -115,14 +132,14 @@ vec3 Light::computePhong(vec3 position, vec3 dirToCam, Triangle t, const StlObje
 
     vec3 dirToSource = unit_vector(surfaceToLight);
     float dotProd = dot(normal, dirToSource);
-    vec3 diffuse = dotProd > 0 ? obj.color * dotProd : vec3(0,0,0);
+    vec3 diffuse = dotProd > 0 ? kd * obj.color * dotProd : vec3(0,0,0);
 
     vec3 incomDir = unit_vector(-surfaceToLight);
     vec3 refDir = incomDir - 2.f * dot(incomDir, normal) * normal;
     float specProd = dot(refDir, dirToCam);
-    vec3 specular = specProd > 0 ? obj.specular * float(pow(specProd, obj.shininess)) : vec3(0,0,0);
+    vec3 specular = specProd > 0 ? ks * obj.specular * float(pow(specProd, obj.shininess)) : vec3(0,0,0);
 
-    return light.color * fAtt * (diffuse + sepcular) * intensity;
+    return light.color * fAtt * (diffuse + specular) * intensity;
 }
 
 

@@ -1,7 +1,6 @@
 #ifndef KDTREEH
 #define KDTREEH
 #include <vector>
-#include <thrust/device_vector.h>
 #include <random>
 #include <algorithm>
 #include <deque>
