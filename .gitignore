@@ -2,3 +2,4 @@ examples/*.stl
 out.ppm
 out.jpg
 venv
+with_gpu.*
