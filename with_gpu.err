@@ -1,25 +1,13 @@
-module: unloading 'cuda/12.2.2'
 module: loading 'cuda/12.2.2'
 module: cuda: To use: module load gcc/10.2
-module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
-756060
-48.3974 37.706 101.107
--49.9884 -47.4766 0.00419133
-Parsing time: 296ms
-Triangle count: 756060
-making kdtree
-starting tree init
-creating tree size: 336417
-bboxMin:-49.9884 -47.4766 0.00419133
-bboxMax:48.3974 37.706 101.107
-centroid:-0.795486 -4.88527 50.5558
-look:-0.67276 0.660055 -0.334247
-pos:300 -300 200
-lowerLeft:-28.5001 -61.7593 -5.99333
-horizontal:84.0401 85.6578 -0
-up:-28.6309 28.0902 113.098
-starting render
-Rendering time: 26ms
-File Output Time: 84ms
+module: unloading 'python/3.9.0'
+module: loading 'python/3.9.0'
+module: unloading 'opencv/4.5.5'
+module: loading 'opencv/4.5.5'
+module: opencv: This opencv version is without CUDA support.
+  File "./ppmtojpg.py", line 26
+    _, h, w, *pixels = map(int, re.findall(r'[0-9]+', contents))
+             ^
+SyntaxError: invalid syntax
