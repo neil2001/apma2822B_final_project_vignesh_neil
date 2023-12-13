@@ -4,19 +4,22 @@ module: cuda: To use: module load gcc/10.2
 module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
-412
-20.2097 36.0377 58.9513
--10.2316 -11.1598 -1.01005e-08
-Parsing time: 1ms
-Triangle count: 412
+756060
+48.3974 37.706 101.107
+-49.9884 -47.4766 0.00419133
+Parsing time: 296ms
+Triangle count: 756060
 making kdtree
 starting tree init
-creating tree size: 71
-num nodes: 71
-bboxMin:-10.2316 -11.1598 -1.01005e-08
-bboxMax:20.2097 36.0377 58.9513
-centroid:4.98902 12.439 29.4757
+creating tree size: 336417
+bboxMin:-49.9884 -47.4766 0.00419133
+bboxMax:48.3974 37.706 101.107
+centroid:-0.795486 -4.88527 50.5558
+look:-0.67276 0.660055 -0.334247
+pos:300 -300 200
+lowerLeft:-28.5001 -61.7593 -5.99333
+horizontal:84.0401 85.6578 -0
+up:-28.6309 28.0902 113.098
 starting render
-Rendering time: 21ms
-File Output Time: 2659ms
-SKIPPED: /oscar/home/vpandiar/APMA2822B/apma2822B_final_project_vignesh_neil/outputs/gpu_report.sqlite does not contain NV Tools Extension (NVTX) data.
+Rendering time: 26ms
+File Output Time: 84ms

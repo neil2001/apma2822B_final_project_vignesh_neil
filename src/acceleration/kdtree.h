@@ -9,7 +9,7 @@
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
 
-#define LEAF_SIZE 16 // TODO: make sure to change in cpp file too
+#define LEAF_SIZE 8 // TODO: make sure to change in cpp file too
 #define BUF_SIZE 2048
 
 using namespace std;
@@ -125,11 +125,9 @@ public:
 
     int numNodes;
     TreeNode *root;
-    // TreeNodeGPU *nodeArray;
     std::vector<TreeNodeGPU> nodeArray;
     Triangle *allTriangles;
 
-    // TreeNodeGPU *rootGPU;
 
 private:
     // const int MAXDEPTH = 10;
@@ -162,7 +160,7 @@ __host__ void KdTree::init(Triangle *triangles, int n) {
     this->renumber();
     // std::cerr << "renumbered tree" << std::endl;
     this->createNodeArray();
-    this->printTree();
+    // this->printTree();
     return;
 }
 
@@ -432,7 +430,7 @@ __host__ void KdTree::printTree()
     std::cerr << "num nodes: " << this->numNodes << std::endl;
     // std::cerr << "node array size: " << this->nodeArray.size() << std::endl;
 
-    // this->printGPUTreeHelper("", &(this->nodeArray[0]), false);
+    this->printGPUTreeHelper("", &(this->nodeArray[0]), false);
 }
 
 __device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {

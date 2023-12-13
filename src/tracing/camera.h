@@ -42,7 +42,6 @@ public:
     __host__ __device__ inline ray make_ray(float u, float v) { 
         return ray(position, unit_vector((lowerLeft + u*horizontal + v*vertical) - position)); 
     }
-    
 
     vec3 lowerLeft;
     vec3 horizontal;

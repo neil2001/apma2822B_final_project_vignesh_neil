@@ -48,7 +48,7 @@ __device__ vec3 color(const ray& r, StlObject obj) {
     */
 
     // LAMBERTIAN
-    vec3 kd(1.0, 1.0, 0.1);
+    vec3 kd(0.9, 0.9, 0.9);
     ray_hit rec;
     if (obj.hitTreeGPU(r, rec)) {
         vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
@@ -107,8 +107,10 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
 }
 
 int main() {
+    // int n_cols = 8000;
+    // int n_rows = 8000;
     int n_cols = 600;
-    int n_rows = 1200;
+    int n_rows = 600;
 
     int tx = 8;
     int ty = 8;
@@ -126,11 +128,11 @@ int main() {
     dim3 nblocks(n_cols/tx + 1, n_rows/ty + 1);
 
     // Pikachu
-    Camera camera(
-        vec3(0.0, -64.0, 32.0), 
-        vec3(-16.0, 0.0, -16.0), 
-        vec3(48.0, 0.0, 0.0), 
-        vec3(0.0, 0.0, 96.0));
+    // Camera camera(
+    //     vec3(0.0, -64.0, 32.0), 
+    //     vec3(-16.0, 0.0, -16.0), 
+    //     vec3(48.0, 0.0, 0.0), 
+    //     vec3(0.0, 0.0, 96.0));
 
     // Mandalorian
     // Camera camera(
@@ -160,9 +162,12 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    // std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/bmo.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/F-15.stl");
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/neuronBall.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/hogwarts.stl");
+    // std::vector<Triangle> triangles = StlParser::parseFile("examples/Einstein.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/dragon.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/mando.stl");
     gettimeofday(&endTime, nullptr);
@@ -217,9 +222,14 @@ int main() {
 
     // vec3 dragPos(30, -30, 20);
     // vec3 mandoPos(-40, -40, 20);
-    // vec3 bmoPos(300, -300, 200);
+    vec3 bmoPos(300, -300, 200);
+    // vec3 hogPos(600, -600, 400);
+    // vec3 einsteinPos(450, -450, 300);
     // Camera camera(mandoPos, centroid, 40, 20);
     // Camera camera(dragPos, centroid, 20, 40);
+    Camera camera(bmoPos, centroid, 120, 120);
+    // Camera camera(hogPos, centroid, 120, 240);
+    // Camera camera(einsteinPos, centroid, 120, 120);
     // Camera camera(bboxMax*1.5f, centroid, 40, 20);
 
     std::cerr << "starting render" << std::endl;
@@ -242,6 +252,7 @@ int main() {
 
     std::cerr << "Rendering time: " << millis << "ms" << std::endl;
 
+
     gettimeofday(&startTime, nullptr); 
     std::cout << "P3\n" << n_cols << " " << n_rows << "\n255\n";
     for (int j = n_rows-1; j >= 0; j--) {
@@ -259,8 +270,9 @@ int main() {
 
     std::cerr << "File Output Time: " << millis << "ms" << std::endl;
 
-    cudaFree(frame);
     cudaFree(treeNodesGPU_h);
     cudaFree(treeGPU_u);
+    cudaFree(frame);
+
     // cudaFree(object_d);
 }
