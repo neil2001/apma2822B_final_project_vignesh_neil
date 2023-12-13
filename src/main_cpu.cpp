@@ -2,6 +2,7 @@
 #include <time.h>
 #include <vector>
 #include <sys/time.h>
+#include <omp.h>
 
 #include "tracing/vec3.h"
 #include "tracing/ray.h"
@@ -75,12 +76,10 @@ vec3 color(const ray& r, StlObject obj) {
 void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 
     // for (int j : tqdm::range(n_rows)) {
+    #pragma omp parallel for
     for (int j = 0; j < n_rows; j++) {
-        if (j % 100 == 0) {
-            std::cerr << "row " << j << std::endl;
-        }
-        float v = float(j) / float(n_rows);
         for (int i=0; i<n_cols; i++) {
+            float v = float(j) / float(n_rows);
             int pixel_index = j * n_cols + i;    
             float u = float(i) / float(n_cols);
             ray toTrace = camera.make_ray(u, v);
@@ -92,13 +91,13 @@ void render(vec3 *frame, int n_cols, int n_rows, Camera camera, StlObject obj) {
 }
 
 int main() {
-    int n_rows = 2400;
-    int n_cols = 4800;
+    int n_rows = 1200;
+    int n_cols = 600;
 
     // int num_pixels = n_cols * n_rows;
 
     // allocating image frame
-    vec3 frame[n_cols*n_rows];
+    vec3 frame[n_cols * n_rows];
  
     // Pikachu
     // Camera camera(
@@ -135,7 +134,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/hogwarts.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/neuron_ball.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/low_drogon.stl");
     gettimeofday(&endTime, nullptr);
 
@@ -168,7 +167,7 @@ int main() {
 
     // Camera camera(dragCamPos, centroid, 20, 40);
     // Camera camera(mandoPos, centroid, 40, 20);
-    Camera camera(bmoPos, centroid, 200, 400);
+    Camera camera(bmoPos, centroid, 300, 150);
 
     gettimeofday(&startTime, nullptr);
     render(frame, n_cols, n_rows, camera, object);

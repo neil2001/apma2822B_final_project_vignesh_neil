@@ -5,19 +5,128 @@ module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
 src/main_cpu.cpp: In function ‘int main()’:
-src/main_cpu.cpp:101:10: warning: ISO C++ forbids variable length array ‘frame’ [-Wvla]
-  101 |     vec3 frame[n_cols*n_rows];
+src/main_cpu.cpp:100:10: warning: ISO C++ forbids variable length array ‘frame’ [-Wvla]
+  100 |     vec3 frame[n_cols * n_rows];
       |          ^~~~~
-1244538
-207.928 208.671 120.245
--35.7445 31.3292 -3.10121e-05
-Parsing time: 427ms
-Triangle count: 1244538
+1151756
+50.5473 55.9293 48.7234
+-50.4095 -56.6719 -47.4505
+Parsing time: 446ms
+Triangle count: 1151756
 starting tree init
-bounding box on init min: 207.928 208.671 120.245
-bounding box on init max: -35.7445 31.3292 -3.10121e-05
-/var/spool/slurmd/job12332836/slurm_script: line 18: 171860 Segmentation fault      ./my_program > out.ppm
-Traceback (most recent call last):
-  File "./ppmtojpg.py", line 11, in <module>
-    Pidentifier, h, w, *pixels = re.findall(r'[0-9]+', contents)
-ValueError: not enough values to unpack (expected at least 3, got 0)
+bounding box on init min: 50.5473 55.9293 48.7234
+bounding box on init max: -50.4095 -56.6719 -47.4505
+finished tree init
+renumbered tree
+creating tree size: 407407
+└──0
+    ├──1
+    │   ├──3
+    │   │   ├──7
+    │   │   │   ├──15
+    │   │   │   │   ├──31
+    │   │   │   │   │   ├──63
+    │   │   │   │   │   └──64
+    │   │   │   │   └──32
+    │   │   │   │       ├──65
+    │   │   │   │       └──66
+    │   │   │   └──16
+    │   │   │       ├──33
+    │   │   │       │   ├──67
+    │   │   │       │   └──68
+    │   │   │       └──34
+    │   │   │           ├──69
+    │   │   │           └──70
+    │   │   └──8
+    │   │       ├──17
+    │   │       │   ├──35
+    │   │       │   │   ├──71
+    │   │       │   │   └──72
+    │   │       │   └──36
+    │   │       │       ├──73
+    │   │       │       └──74
+    │   │       └──18
+    │   │           ├──37
+    │   │           │   ├──75
+    │   │           │   └──76
+    │   │           └──38
+    │   │               ├──77
+    │   │               └──78
+    │   └──4
+    │       ├──9
+    │       │   ├──19
+    │       │   │   ├──39
+    │       │   │   │   ├──79
+    │       │   │   │   └──80
+    │       │   │   └──40
+    │       │   │       ├──81
+    │       │   │       └──82
+    │       │   └──20
+    │       │       ├──41
+    │       │       │   ├──83
+    │       │       │   └──84
+    │       │       └──42
+    │       │           ├──85
+    │       │           └──86
+    │       └──10
+    │           ├──21
+    │           │   ├──43
+    │           │   │   ├──87
+    │           │   │   └──88
+    │           │   └──44
+    │           │       ├──89
+    │           │       └──90
+    │           └──22
+    │               ├──45
+    │               │   ├──91
+    │               │   └──92
+    │               └──46
+    │                   ├──93
+    │                   └──94
+    └──2
+        ├──5
+        │   ├──11
+        │   │   ├──23
+        │   │   │   ├──47
+        │   │   │   │   ├──95
+        │   │   │   │   └──96
+        │   │   │   └──48
+        │   │   │       ├──97
+        │   │   │       └──98
+        │   │   └──24
+        │   │       ├──49
+        │   │       │   ├──99
+        │   │       │   └──100
+        │   │       └──50
+        │   └──12
+        │       ├──25
+        │       │   ├──51
+        │       │   └──52
+        │       └──26
+        │           ├──53
+        │           └──54
+        └──6
+            ├──13
+            │   ├──27
+            │   │   ├──55
+            │   │   └──56
+            │   └──28
+            │       ├──57
+            │       └──58
+            └──14
+                ├──29
+                │   ├──59
+                │   └──60
+                └──30
+                    ├──61
+                    └──62
+bboxMin:50.5473 55.9293 48.7234
+bboxMax:-50.4095 -56.6719 -47.4505
+centroid:0.0688667 -0.371347 0.636446
+look:-0.64021 0.639564 -0.425546
+pos:300 -300 200
+lowerLeft:-7.77865 -98.5443 -135.104
+horizontal:106.012 106.12 -0
+up:-90.3175 90.2264 271.481
+Rendering time: 8025ms
+File writing time: 144ms

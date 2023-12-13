@@ -13,7 +13,6 @@
 # Load CUDA module
 module load cuda/12.2.2  gcc/10.2   
 
-
 make clean all
 ./my_program > out.ppm
 python3 ./ppmtojpg.py

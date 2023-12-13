@@ -190,6 +190,7 @@ bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
             // LEAF NODE
             int hitCount = 0;
             Triangle t;
+            #pragma omp parallel for
             for (int ti : curr->tri_idxs) {
                 t = this->allTriangles[ti];
                 if (t.hit(r, t_max, rec)) {

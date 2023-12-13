@@ -1,7 +1,7 @@
 # Makefile for C++ project
 
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic
+CXXFLAGS = -std=c++11 -fopenmp -Wall -Wextra -pedantic
 LDFLAGS = 
 
 SRCDIR = src

@@ -1,16 +1,16 @@
 ## SLURM PROLOG ###############################################################
-##    Job ID : 12332836
+##    Job ID : 12375465
 ##  Job Name : cpu.sh
-##  Nodelist : node1735
+##  Nodelist : node1321
 ##      CPUs : 1
 ##   Mem/CPU : 2800 MB
 ## Directory : /oscar/home/nxu4/apma2822/apma2822B_final_project_vignesh_neil
-##   Job Started : Fri Dec  8 16:06:17 EST 2023
+##   Job Started : Wed Dec 13 00:11:29 EST 2023
 ###############################################################################
 rm -rf obj bin
-g++ -std=c++11 -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/kdtree.o src/acceleration/kdtree.cpp
-g++ -std=c++11 -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/kdtreegpu.o src/acceleration/kdtreegpu.cpp
-g++ -std=c++11 -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/quickselect.o src/acceleration/quickselect.cpp
-g++ -std=c++11 -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/treenode.o src/acceleration/treenode.cpp
-g++ -std=c++11 -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/main_cpu.o src/main_cpu.cpp
-g++ -std=c++11 -Wall -Wextra -pedantic  -I submodules/tqdm.cpp/include -o my_program obj/acceleration/kdtree.o obj/acceleration/kdtreegpu.o obj/acceleration/quickselect.o obj/acceleration/treenode.o obj/main_cpu.o
+g++ -std=c++11 -fopenmp -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/kdtree.o src/acceleration/kdtree.cpp
+g++ -std=c++11 -fopenmp -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/kdtreegpu.o src/acceleration/kdtreegpu.cpp
+g++ -std=c++11 -fopenmp -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/quickselect.o src/acceleration/quickselect.cpp
+g++ -std=c++11 -fopenmp -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/acceleration/treenode.o src/acceleration/treenode.cpp
+g++ -std=c++11 -fopenmp -Wall -Wextra -pedantic -I submodules/tqdm.cpp/include -c -o obj/main_cpu.o src/main_cpu.cpp
+g++ -std=c++11 -fopenmp -Wall -Wextra -pedantic  -I submodules/tqdm.cpp/include -o my_program obj/acceleration/kdtree.o obj/acceleration/kdtreegpu.o obj/acceleration/quickselect.o obj/acceleration/treenode.o obj/main_cpu.o
