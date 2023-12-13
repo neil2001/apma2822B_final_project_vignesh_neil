@@ -2,6 +2,7 @@
 #include <deque>
 #include <numeric>
 
+#include <omp.h>
 #include "kdtree.h"
 // #define LEAF_SIZE 4 //TODO: make sure to change in header file too
 
@@ -277,10 +278,6 @@ void KdTree::printTreeHelper(const std::string& prefix, const TreeNode* node, bo
 
 void KdTree::printGPUTreeHelper(const std::string& prefix, const TreeNodeGPU* node, bool isLeft)
 {   
-    if (node->idx > 100) {
-        return;
-    }
-
     std::cerr << prefix;
 
     std::cerr << (isLeft ? "├──" : "└──" );

@@ -2,6 +2,7 @@
 
 # Ensures all allocated cores are on the same node
 #SBATCH -N 1
+#SBATCH --mem=40G
 
 # Request 1 CPU core
 #SBATCH -n 1
