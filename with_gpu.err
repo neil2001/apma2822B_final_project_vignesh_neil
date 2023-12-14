@@ -4,23 +4,23 @@ module: cuda: To use: module load gcc/10.2
 module: unloading 'gcc/10.2'
 module: loading 'gcc/10.2'
 module: gcc: "Note: loading the gcc module overrides the gcc version on the system.  If you want to revert to the version of gcc provided by the OS, unload the gcc module."
-167390
-690.767 685.063 216.154
--690.214 -557.267 -216.154
-Parsing time: 25ms
-Triangle count: 167390
+165502
+39.8741 29.0737 101.6
+-39.7326 -33.5958 -5.99233e-07
+Parsing time: 30ms
+Triangle count: 165504
 making kdtree
 starting tree init
-creating tree size: 8187
-num nodes: 8187
-bboxMin:-690.214 -557.267 -216.154
-bboxMax:690.767 685.063 216.154
-centroid:0.276367 63.8979 0
-look:-0.630295 0.65277 -0.420261
-pos:1800 -1800 1200
-lowerLeft:-515.804 -697.303 -408.331
-horizontal:1294.89 1250.31 -0
-up:-262.727 272.096 816.663
+creating tree size: 8191
+num nodes: 8191
+bboxMin:-59.5989 -50.3937 -8.9885e-07
+bboxMax:59.8112 43.6106 101.6
+centroid:0.106165 -3.39155 50.8
+look:-0.591476 0.782225 -0.195651
+pos:300 -400 150
+lowerLeft:-59.209 -61.7333 -3.1371
+horizontal:131.611 99.5169 -0
+up:-12.9804 17.1665 107.874
 starting render
-Rendering time: 99ms
-File Output Time: 632ms
+Rendering time: 513ms
+File Output Time: 6016ms

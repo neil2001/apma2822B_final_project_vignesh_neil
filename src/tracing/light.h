@@ -5,8 +5,8 @@
 #include "ray.h"
 
 #define ka 0.5
-#define kd 0.3
-#define ks 0.8
+#define kd 0.8
+#define ks 0.9
 
 enum class LightType {
     LIGHT_POINT,
@@ -29,14 +29,15 @@ public:
         type = LightType::LIGHT_DIRECTIONAL;
         color = c;
         attFunc = f_att;
-        dir = d;
+        dir = unit_vector(d);
     }
 
-    __host__ void makeSpot(vec3 c, vec3 f_att, vec3 position, float p, float a) {
+    __host__ void makeSpot(vec3 c, vec3 f_att, vec3 position, vec3 d, float p, float a) {
         type = LightType::LIGHT_SPOT;
         color = c;
         attFunc = f_att;
         pos = position;
+        dir = d;
         penumbra = p;
         angle = a;
     }
@@ -139,7 +140,7 @@ __device__ vec3 Light::computePhong(vec3 position, vec3 dirToCam, vec3 normal, S
     float specProd = dot(refDir, dirToCam);
     vec3 specular = specProd > 0 ? ks * obj.specular * float(pow(specProd, obj.shininess)) : vec3(0,0,0);
 
-    return this->color * fAtt * (diffuse + specular) * intensity;
+    return clamp(this->color * fAtt * (diffuse + specular) * intensity);
 }
 
 

@@ -143,4 +143,12 @@ __host__ __device__ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
+__host__ __device__ inline vec3 clamp(vec3 v) {
+    float newX = v.x() > 1.f ? 1.f : v.x();
+    float newY = v.y() > 1.f ? 1.f : v.y();
+    float newZ = v.z() > 1.f ? 1.f : v.z();
+
+    return vec3(newX, newY, newZ);
+}
+
 #endif

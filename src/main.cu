@@ -43,6 +43,7 @@ __device__ vec3 color(const ray& r, Camera c, StlObject obj, Lighting l) {
         for (int i = 0; i < l.count; i++) {
             Light light = l.lights[i];
             illumination += light.computePhong(rec.p, dirToCam, rec.normal, obj);
+            illumination = clamp(illumination);
         }
 
         return illumination;
@@ -71,7 +72,6 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
     int j = threadIdx.y + blockIdx.y * blockDim.y;
 
     if ((i >= x_max) || (j >= y_max)) {
-        // printf("out of bounds\n");
         return;
     }
 
@@ -80,14 +80,13 @@ __global__ void render(vec3 *frame, int x_max, int y_max, Camera camera, StlObje
     float v = float(j) / float(y_max);
 
     ray toTrace = camera.make_ray(u, v);
-    // printf("%g, %g, %g\n", toTrace.direction().x(), toTrace.direction().y(), toTrace.direction().z());
     vec3 colorResult = color(toTrace, camera, obj, l);
     frame[pixel_index] = colorResult;
 }
 
 int main() {
-    int n_cols = 2400;
-    int n_rows = 1200;
+    int n_cols = 6000;
+    int n_rows = 4000;
 
     int tx = 8;
     int ty = 8;
@@ -106,7 +105,7 @@ int main() {
     struct timeval endTime;
 
     gettimeofday(&startTime, nullptr);
-    std::vector<Triangle> triangles = StlParser::parseFile("examples/balloon_dog.stl");
+    std::vector<Triangle> triangles = StlParser::parseFile("examples/groot.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/F-15.stl");
     // std::vector<Triangle> triangles = StlParser::parseFile("examples/pikachu.stl");
     gettimeofday(&endTime, nullptr);
@@ -127,19 +126,44 @@ int main() {
 
     // TODO: think about what this looks like
     StlObject object(object_h, triangle_count);
-    object.color = vec3(.7,.7,.7);
+    object.color = vec3(0.5,0.3,0);
     object.specular = vec3(1,1,1);
-    object.shininess = 15;
+    object.shininess = 5;
 
     std::vector<Light> lightVec;
+    // color, attenuation, dir for BMO
+    // Light light1;
+    // light1.makeDir(vec3(1, 0.6, 1), vec3(1,0,0), vec3(-1, 1, 0)); // PINK
+
+    // Light light2;
+    // light2.makeDir(vec3(0, 1, 0), vec3(1,0,0), vec3(-1, -1, 0)); // GREEN
+
+    // Light light3;
+    // light3.makeDir(vec3(0.75, 1, 1), vec3(1,0,0), vec3(0, 0, -1)); // CYAN
+
+    // batman 
+    // 45.2189 27.5099 134.38
+    // -39.5991 -28.3567 0
+    // Light light1;
+    // light1.makeSpot(vec3(0.8, 0.9, 1), vec3(1,0,0), vec3(0, 0, 200), vec3(0,0,0), 0.8, 0.7); // light blue
+
+    // Light light2;
+    // light2.makeDir(vec3(1, 1, 0.8), vec3(1,0,0), vec3(-1, 1, 0)); // yellow
+
+    // Light light3;
+    // light3.makeDir(vec3(1, 0.4, 0.6), vec3(1,0,0), vec3(-1, -1, 0)); // red
+
+    // groot
+    // 45.2189 27.5099 134.38
+    // -39.5991 -28.3567 0
     Light light1;
-    light1.makeDir(vec3(1, 0, 0), vec3(1,0,0), vec3(0, 1, 0));
+    light1.makeSpot(vec3(0.8, 0.9, 1), vec3(1,0,0), vec3(0, 0, 200), vec3(0,0,0), 0.5, 0.3); // light blue
 
     Light light2;
-    light2.makeDir(vec3(0, 0, 1), vec3(1,0,0), vec3(0, 0, -1));
+    light2.makeDir(vec3(0.1, 0.7, 0), vec3(1,0,0), vec3(-1, 1, 0)); // yellow
 
     Light light3;
-    light3.makeDir(vec3(0, 1, 0), vec3(1,0,0), vec3(-1, 0, 0));
+    light3.makeDir(vec3(0.9, 0.85, 0), vec3(1,0,0), vec3(-1, -1, 0)); // red
 
     lightVec.push_back(light1);
     lightVec.push_back(light2);
@@ -183,9 +207,12 @@ int main() {
     vec3 centroid = (bboxMin + bboxMax) / 2.0f;
     std::cerr << "centroid:" << centroid << std::endl;
 
-    vec3 bmoPos(1800, -1800, 1200);
+    // vec3 bmoPos(300, -300, 200);
+    vec3 grootPos(300, -400, 150);
+
+    // bmoPos *= 0.75;
     // Camera camera(vec3(bboxMax.x()*1.5f, 0, 0), centroid, (bboxMax.y() - bboxMin.y())*1.5f, (bboxMax.x()  - bboxMin.x())*1.5f);
-    Camera camera(bmoPos, centroid, 900, 1800);
+    Camera camera(grootPos, centroid, 110, 165);
 
     std::cerr << "starting render" << std::endl;
     gettimeofday(&startTime, nullptr); 

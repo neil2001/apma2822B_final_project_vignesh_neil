@@ -120,6 +120,15 @@ std::vector<Triangle> StlParser::parseFile(const char* filename) {
     std::cerr << vec3(max_x, max_y, max_z) << std::endl;
     std::cerr << vec3(min_x, min_y, min_z) << std::endl;
 
+    min_x *= 1.5;
+    min_y *= 1.5;
+    min_z *= 1.5;
+    max_x *= 1.5;
+    max_y *= 1.5;
+    max_z *= 1.5;
+
+    triangles.push_back(Triangle(vec3(min_x, min_y, min_z), vec3(max_x, min_y, min_z), vec3(max_x, max_y, min_z)));
+    triangles.push_back(Triangle(vec3(min_x, min_y, min_z), vec3(max_x, max_y, min_z), vec3(min_x, max_y, min_z)));
 
     return triangles;
 }
