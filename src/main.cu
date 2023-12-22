@@ -12,6 +12,7 @@
 #include "tracing/stlparser.h"
 #include "acceleration/kdtree.h"
 #include "tracing/light.h"
+#include "acceleration/kdtreegpu.h"
 
 #define NUM_REFLECTIONS 10
 #define WARP_SIZE 32
@@ -27,11 +28,6 @@ void check_cuda(cudaError_t result, char const *const func, const char *const fi
         exit(99);
     }
 }
-/**
- * TODO:
- * - maybe do triangles as hostmalloc
- * - use streams and 1024 threads per block (switch to row-wise)
-*/
 
 __device__ vec3 color(const ray& r, Camera c, StlObject obj, Lighting l) {
     // PHONG
@@ -48,19 +44,6 @@ __device__ vec3 color(const ray& r, Camera c, StlObject obj, Lighting l) {
 
         return illumination;
     }
-
-
-    // LAMBERTIAN
-    // vec3 kd(1.0, 1.0, 0.1);
-    // ray_hit rec;
-    // if (obj.hitTreeGPU(r, rec)) {
-    //     vec3 rayDir = r.direction() - 2 * rec.normal * dot(r.direction(), rec.normal);
-    //     rayDir.make_unit_vector();
-    //     // printf("rayDir: %g, %g, %g \n", rayDir.x(), rayDir.y(), rayDir.z());
-    //     float dotProd = dot(rec.normal, rayDir);
-    //     // printf("dotProd:%g \n", dotProd);
-    //     return kd * dotProd;
-    // }
 
     vec3 normalized = unit_vector(r.direction());
     float t = 0.5f*(normalized.x() + 1.0f);

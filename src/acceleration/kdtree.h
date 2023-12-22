@@ -8,30 +8,15 @@
 #include "../tracing/vec3.h"
 #include "../tracing/triangle.h"
 #include "../tracing/ray.h"
+#include "util.h"
+#include "kdtreegpu.h"
 
-#define LEAF_SIZE 64 // TODO: make sure to change in cpp file too
-#define BUF_SIZE 2048
+
 
 using namespace std;
 
 std::random_device rd;
 std::mt19937 gen(rd()); // Mersenne Twister 19937 generator
-
-enum Axis {
-    X = 0,
-    Y = 1,
-    Z = 2,
-};
-
-enum EdgeType {
-    MIN = 0,
-    MAX = 1,
-};
-
-struct bbox {
-    vec3 min; // these aren't rly vectors tbh
-    vec3 max;
-};
 
 class TreeNode {
 
@@ -64,55 +49,6 @@ public:
     TreeNode *left;
     TreeNode *right;
     bbox box;
-};
-
-class TreeNodeGPU {
-
-public:
-    __host__ __device__ TreeNodeGPU() {}
-    __host__ __device__ TreeNodeGPU(bool leafBool, int trisArraySize, int* trisArray, 
-                bbox newBox, int curIdx, int leftIdx, int rightIdx) {
-        isLeaf = leafBool;
-        box = newBox;
-        numTris = trisArraySize;
-        for (int i = 0; i < numTris; i++) {
-            t_idxs[i] = trisArray[i];
-        }
-        idx = curIdx;
-        leftNodeIdx = leftIdx;
-        rightNodeIdx = rightIdx;
-    }
-    
-    __host__ __device__ bool hit(const ray& r);
-
-    bool isLeaf;
-    bbox box;
-    int numTris;
-    int idx;
-    int leftNodeIdx;
-    int rightNodeIdx;
-    int t_idxs[LEAF_SIZE];
-    
-};
-
-class KdTreeGPU {
-
-public: 
-    __host__ __device__ KdTreeGPU() {}
-    __host__ __device__ KdTreeGPU(Triangle *ts, int nts, TreeNodeGPU *ns, int nns) {
-        tri_count = nts;
-        node_count = nns;
-
-        allTriangles = ts;
-        nodes = ns;
-    }
-
-    __device__ bool hit(const ray& r, ray_hit& finalHitRec);
-
-    int tri_count;
-    int node_count; 
-    Triangle *allTriangles;
-    TreeNodeGPU *nodes;
 };
 
 class KdTree {
@@ -320,7 +256,6 @@ __host__ bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
                     t_max = rec.t;
                     finalHitRec = rec;
                 }
-                // std::cerr << "hit " << hitCount << " triangle(s) in leaf node, level:" << curr->level << std::endl;
             }
 
             continue;
@@ -328,19 +263,16 @@ __host__ bool KdTree::hit(const ray& r, ray_hit& finalHitRec) {
 
         bool hitLeft = curr->left->hit(r);
         if (hitLeft) {
-            // std::cerr << "hit left tree bounding box, level:" << curr->left->level << std::endl;
             toVisit.push_back(curr->left);
         }
 
         bool hitRight = curr->right->hit(r);
 
         if (hitRight) {
-            // std::cerr << "hit right tree bounding box, level:" << curr->right->level << std::endl;
             toVisit.push_back(curr->right);
         }
 
         if (!hitLeft && !hitRight && curr->level > 0) {
-            // std::cerr << "how did we hit neither box, but we hit the box above" << std::endl;
         }
     }
 
@@ -435,83 +367,8 @@ __host__ void KdTree::printTree()
     // this->printGPUTreeHelper("", &(this->nodeArray[0]), false);
 }
 
-__device__ bool KdTreeGPU::hit(const ray& r, ray_hit& finalHitRec) {
-    // thrust::device_vector<int> toVisit;
-    // std::vector<int> toVisit;
-    // toVisit.push_back(0);
-
-    int toVisit[BUF_SIZE];
-
-    int visitIdx = 0;
-    int pushIdx = 1;
-    // std::deque<TreeNode*> toVisit = {this->root};
-
-    bool has_hit = false;
-    float t_max = INFINITY;
-    ray_hit rec;
-
-    while (visitIdx < pushIdx) {
-        TreeNodeGPU *curr = &(this->nodes[toVisit[visitIdx]]);
-        visitIdx++;
-        visitIdx %= BUF_SIZE;
-        if (curr->isLeaf) {
-            // LEAF NODE
-            int hitCount = 0;
-            Triangle t;
-            for (int i = 0; i < curr->numTris; i++) {
-                t = this->allTriangles[curr->t_idxs[i]];
-                if (t.hit(r, t_max, rec)) {
-                    hitCount++;
-                    has_hit = true;
-                    t_max = rec.t;
-                    // finalHitRec = rec;
-                    finalHitRec.t = t_max;
-                    finalHitRec.p = rec.p;
-                    finalHitRec.normal = rec.normal;
-                }
-                // std::cerr << "hit " << hitCount << " triangle(s) in leaf node, level:" << curr->level << std::endl;
-            }
-
-            continue;
-        }
-
-        bool hitLeft = this->nodes[curr->leftNodeIdx].hit(r);
-        if (hitLeft) {
-            toVisit[pushIdx] = curr->leftNodeIdx;
-            pushIdx++;
-            pushIdx %= BUF_SIZE;
-            if (pushIdx == visitIdx) {
-                // TODO: Remove this
-                printf("BUFFER too small \n");
-            }
-        }
-
-        bool hitRight = this->nodes[curr->rightNodeIdx].hit(r);
-
-        if (hitRight) {
-            toVisit[pushIdx] = curr->rightNodeIdx;
-            pushIdx++;
-            pushIdx %= BUF_SIZE;
-            if (pushIdx == visitIdx) {
-                // TODO: Remove this
-                printf("BUFFER too small \n");
-            }
-        }
-        
-    }
-
-    return has_hit;
-}
-
 // From stack overflow: https://gamedev.stackexchange.com/questions/18436/most-efficient-aabb-vs-ray-collision-algorithms
 __host__ bool TreeNode::hit(const ray& r) {
-
-    // r.dir is unit direction vector of ray
-    // float dirfrac_x = 1.0f / r.direction()[0];
-    // float dirfrac_y = 1.0f / r.direction()[1];
-    // float dirfrac_z = 1.0f / r.direction()[2];
-    // lb is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
-    // r.org is origin of ray
     float t1 = (this->box.min[0] - r.origin()[0]) / r.direction()[0];
     float t2 = (this->box.max[0] - r.origin()[0]) / r.direction()[0];
     float t3 = (this->box.min[1] - r.origin()[1]) / r.direction()[1];
@@ -525,87 +382,16 @@ __host__ bool TreeNode::hit(const ray& r) {
     // if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
     if (tmax < 0)
     {
-        // t = tmax;
         return false;
     }
 
     // if tmin > tmax, ray doesn't intersect AABB
     if (tmin > tmax)
     {
-        // t = tmax;
         return false;
     }
 
-    // t = tmin;
     return true;
-}
-
-__host__ __device__ bool TreeNodeGPU::hit(const ray& r) {
-
-    // r.dir is unit direction vector of ray
-    // float dirfrac_x = 1.0f / r.direction()[0];
-    // float dirfrac_y = 1.0f / r.direction()[1];
-    // float dirfrac_z = 1.0f / r.direction()[2];
-    // lb is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
-    // r.org is origin of ray
-    float t1 = (this->box.min[0] - r.origin()[0]) / r.direction()[0];
-    float t2 = (this->box.max[0] - r.origin()[0]) / r.direction()[0];
-    float t3 = (this->box.min[1] - r.origin()[1]) / r.direction()[1];
-    float t4 = (this->box.max[1] - r.origin()[1]) / r.direction()[1];
-    float t5 = (this->box.min[2] - r.origin()[2]) / r.direction()[2];
-    float t6 = (this->box.max[2] - r.origin()[2]) / r.direction()[2];
-
-    float tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6));
-    float tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6));
-
-    // if tmax < 0, ray (line) is intersecting AABB, but the whole AABB is behind us
-    if (tmax < 0)
-    {
-        // t = tmax;
-        return false;
-    }
-
-    // if tmin > tmax, ray doesn't intersect AABB
-    if (tmin > tmax)
-    {
-        // t = tmax;
-        return false;
-    }
-
-    // t = tmin;
-    return true;
-}
-
-__host__ float KdTree::quickSelectHelper(std::vector<float> &data, int k) {
-    if (data.size() == 1) {
-        return data[0];
-    }
-    // choosing a random pivot
-    std::uniform_int_distribution<> dist (0, data.size()-1);
-    int idx = dist(gen);
-    float pivot = data[idx];
-
-    std::vector<float> less;
-    std::vector<float> equal;
-    std::vector<float> greater;
-    // partitioning the list
-    for (float val : data) {
-        if (val < pivot) {
-            less.push_back(val);
-        } else if (val > pivot) {
-            greater.push_back(val);
-        } else {
-            equal.push_back(val);
-        }
-    }
-    // recursive calls to quickselect
-    if (k <= int(less.size())) {
-        return quickSelectHelper(less, k);
-    } else if (k <= int(less.size() + equal.size())) {
-        return pivot;
-    } else {
-        return quickSelectHelper(greater, k - less.size() - equal.size());
-    }
 }
 
 __host__ float KdTree::quickSelect(std::vector<int> ts, Axis a) {
@@ -627,8 +413,6 @@ __host__ float KdTree::quickSelect(std::vector<int> ts, Axis a) {
     } else {
         return data[dSize / 2];
     }
-    // fix later
-    // return quickSelectHelper(data, count/2);
 }
 
 #endif

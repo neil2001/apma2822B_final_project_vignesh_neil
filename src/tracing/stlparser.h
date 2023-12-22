@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <unordered_map>
 
 #include "vec3.h"
 #include "triangle.h"
@@ -14,6 +15,16 @@
 #define HEADER_LENGTH 80
 
 using namespace std;
+
+namespace std {
+    template <>
+    struct hash<vec3> {
+        size_t operator()(const vec3& v) const {
+            // Hash function implementation based on individual components
+            return hash<float>()(v.x()) ^ hash<float>()(v.y()) ^ hash<float>()(v.z());
+        }
+    };
+}
 
 struct Facet
 {
@@ -50,7 +61,42 @@ private:
         size_t n_bytes = array_length * sizeof(T);
         in.read(as_char_ptr(dst), n_bytes);
     }
+
+    static void computeVertexNormals(vector<Triangle> &triangles);
 };
+
+void StlParser::computeVertexNormals(vector<Triangle> &triangles) {
+    unordered_map<vec3, vector<Triangle>> triMap;
+    unordered_map<vec3, vec3> nMap;
+
+    for (const Triangle& t : triangles) {
+        triMap[t.v[0]].push_back(t);
+        triMap[t.v[1]].push_back(t);
+        triMap[t.v[2]].push_back(t);
+    }
+
+    for (auto& entry : triMap) {
+        vec3 vn(0,0,0);
+        // float totalArea = 0;
+        for (const Triangle& t : entry.second) {
+            vn += t.n;
+            // vn += t.n * t.area;
+            // totalArea += t.area;
+        }
+        // vn /= totalArea;
+        vn /= entry.second.size();
+        vn.make_unit_vector();
+        nMap[entry.first] = vn;
+    }
+
+    for (Triangle& t : triangles) {
+        t.vn[0] = nMap[t.v[0]];
+        t.vn[1] = nMap[t.v[1]];
+        t.vn[2] = nMap[t.v[2]];
+    }
+
+    return;
+}
 
 std::vector<Triangle> StlParser::parseFile(const char* filename) {
     std::ifstream in = open_binary_stl(filename);
@@ -130,7 +176,11 @@ std::vector<Triangle> StlParser::parseFile(const char* filename) {
     triangles.push_back(Triangle(vec3(min_x, min_y, min_z), vec3(max_x, min_y, min_z), vec3(max_x, max_y, min_z)));
     triangles.push_back(Triangle(vec3(min_x, min_y, min_z), vec3(max_x, max_y, min_z), vec3(min_x, max_y, min_z)));
 
+    computeVertexNormals(triangles);
+
     return triangles;
 }
+
+
 
 #endif
