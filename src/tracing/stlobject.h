@@ -49,6 +49,10 @@ public:
     int count;
     KdTree *tree;
     KdTreeGPU *treeGPU;
+
+    vec3 color;
+    vec3 specular;
+    int shininess;
 };
 
 #endif

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+
+
 class vec3  {
 
 
@@ -23,6 +25,17 @@ public:
     __host__ __device__ inline vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
     __host__ __device__ inline float operator[](int i) const { return e[i]; }
     __host__ __device__ inline float& operator[](int i) { return e[i]; };
+    __host__ __device__ inline bool operator==(const vec3 &v2) const {
+        return e[0] == v2.x() &&  e[1] == v2.y() && e[2] == v2.z();
+    }
+    __host__ __device__ inline vec3& operator=(const vec3 &v2) {
+        if (this != &v2) {
+            e[0] = v2.x(); 
+            e[1] = v2.y(); 
+            e[2] = v2.z();
+        }
+        return *this;
+    }
 
     __host__ __device__ inline vec3& operator+=(const vec3 &v2);
     __host__ __device__ inline vec3& operator-=(const vec3 &v2);
@@ -31,6 +44,8 @@ public:
     __host__ __device__ inline vec3& operator*=(const float t);
     __host__ __device__ inline vec3& operator/=(const float t);
 
+    // __host__ __device__ inline bool operator()(const vec3& a, const vec3&b);
+
     __host__ __device__ inline float length() const { return sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]); }
     __host__ __device__ inline float squared_length() const { return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; }
     __host__ __device__ inline void make_unit_vector();
@@ -38,8 +53,6 @@ public:
 
     float e[3];
 };
-
-
 
 inline std::istream& operator>>(std::istream &is, vec3 &t) {
     is >> t.e[0] >> t.e[1] >> t.e[2];
@@ -141,6 +154,14 @@ __host__ __device__ inline vec3& vec3::operator/=(const float t) {
 
 __host__ __device__ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
+}
+
+__host__ __device__ inline vec3 clamp(vec3 v) {
+    float newX = v.x() > 1.f ? 1.f : v.x();
+    float newY = v.y() > 1.f ? 1.f : v.y();
+    float newZ = v.z() > 1.f ? 1.f : v.z();
+
+    return vec3(newX, newY, newZ);
 }
 
 #endif
